@@ -1,0 +1,76 @@
+// Indice
+    // 0. Imports
+    // 1. Panel de debug
+    // 2. Modo
+    // 3. Mapas
+    // 4. Minijuegos
+    // 5. Ajustes de crisis
+    // 6. Ansiedad, calle eterna y escenario
+    // 7. Pruebas
+
+// 0. Imports
+import GUI from 'lil-gui'
+import { CONFIG, runtime } from './config.js'
+import { sm } from './stateMachine.js'
+import { TECHS } from './breathing.js'
+
+// 1. Panel de debug
+// Solo visible con ?debug en la URL (moderadores/desarrolladores).
+export function initDebug(actions) {
+    if (!new URLSearchParams(location.search).has('debug')) return
+    const g = new GUI({ title: 'Debug' }), f = (n) => g.addFolder(n).close()
+    const add = (folder, items) => Object.entries(items).forEach(([label, fn]) => folder.add({ [label]: fn }, label))
+
+    // 2. Modo
+    const modo = g.addFolder('Modo')
+    const mode = { get narrativa() { return !runtime.sandbox }, set narrativa(v) { runtime.sandbox = !v } }
+    modo.add(mode, 'narrativa').name('Narrativa automática').listen()
+    add(modo, { 'Jugar la historia completa (sin debug)': () => { location.href = location.pathname } })
+
+    // 3. Mapas
+    const maps = g.addFolder('Mapas')
+    const go = (id) => () => actions.jumpTo(id)
+    add(maps, {
+        '1 · Cuarto (antes del sismo)': go('HOUSE_PRE'),
+        '2 · Cocina y sala (antes del sismo)': go('HOME_PRE'),
+        '3 · Calle (antes del sismo)': go('STREET_PRE'),
+        '4 · Interior del MIO (viaje normal)': go('MIO_PRE'),
+        '5 · Terremoto (en el MIO)': go('TERREMOTO'),
+        '6 · Una semana después': go('ANNOUNCEMENT'),
+        '7 · Cuarto (después del sismo)': go('HOUSE_POST'),
+        '8 · Cocina y sala (después del sismo)': go('HOME_POST'),
+        '9 · Calle (después del sismo)': go('STREET_POST'),
+        '10 · Interior del MIO (ansiedad)': go('MIO_POST'),
+        '11 · Cerca de la universidad': go('UNIVERSIDAD'),
+        'Final positivo': go('ENDING_GOOD'),
+        'Final negativo': go('ENDING_BAD')
+    })
+
+    // 4. Minijuegos: jugar uno concreto ahora (en la calle) y ajustar sus valores
+    const mini = g.addFolder('Minijuegos')
+    add(mini, Object.fromEntries(TECHS.map(t => [`▶ ${t.name}`, () => actions.playGame(t.id)])))
+    add(mini, { 'Ver los tutoriales otra vez': () => actions.resetTutorials() })
+    mini.add(CONFIG.breathing, 'tol', .05, .5, .01).name('caja/cuerpo: tolerancia'); mini.add(CONFIG.breathing, 'pass', .3, 1, .01).name('caja/cuerpo: % para pasar'); mini.add(CONFIG.breathing, 'rate', .1, 1, .01).name('caja/cuerpo: vel. en retención')
+    mini.add(CONFIG.senses, 'time', 5, 60, 1).name('5-4-3-2-1: tiempo por paso (s)')
+    mini.add(CONFIG.earth, 'need', 2, 20, 1).name('earthing: s sobre el pasto'); mini.add(CONFIG.earth, 'timeout', 10, 90, 1).name('earthing: tiempo límite (s)'); mini.add(CONFIG.earth, 'relief', 0, .3, .01).name('earthing: alivio por s')
+
+    // 5. Ajustes de crisis: solo se notan con la narrativa automática activada
+    const dif = f('Ajustes de crisis')
+    dif.add(CONFIG, 'maxFailures', 1, 10, 1).name('fallos permitidos')
+    dif.add(CONFIG.crisis, 'first', 1, 40, 1).name('1.ª crisis (s)'); dif.add(CONFIG.crisis, 'min', 2, 40, 1).name('crisis mín (s)'); dif.add(CONFIG.crisis, 'max', 2, 60, 1).name('crisis máx (s)')
+    dif.add(CONFIG.crisis, 'startAnxiety', .3, 1, .01).name('ansiedad al iniciar crisis'); dif.add(CONFIG.anxiety, 'failPenalty', 0, .5, .01).name('castigo por fallar')
+    dif.add(CONFIG.bus, 'crisisMin', 2, 30, 1).name('MIO: crisis mín (s)'); dif.add(CONFIG.bus, 'crisisMax', 2, 40, 1).name('MIO: crisis máx (s)')
+
+    // 6. Ansiedad, calle eterna y escenario
+    const an = g.addFolder('Ansiedad'); an.add(runtime, 'anxiety', 0, 1, .01).listen(); an.add(CONFIG.anxiety, 'shakeMax', 0, .5, .01).name('camera shake')
+    an.add(CONFIG.anxiety, 'satMin', 0, 1, .01).name('saturation min'); an.add(CONFIG.anxiety, 'postQuakeSat', 0, 1, .01).name('post-quake saturation'); an.add(CONFIG.anxiety, 'blurMax', 0, 10, .1).name('blur'); an.add(CONFIG.anxiety, 'vignetteMax', 0, 1, .01).name('vignette'); an.add(CONFIG.anxiety, 'distort', 0, 2, .05).name('city distortion')
+    const ce = f('Calle eterna'); ce.add(CONFIG.street, 'from', 0, 1, .01).name('empieza con ansiedad'); ce.add(CONFIG.street, 'full', 0, 1, .01).name('máxima con ansiedad'); ce.add(CONFIG.street, 'endless', 0, 60, 1).name('cuánto se alarga'); ce.add(CONFIG.street, 'slow', 0, .9, .01).name('cuánto frena el paso')
+    const en = f('Escenario'); en.add(runtime, 'envProgress', 0, 1, .01).name('environment progress').listen(); en.add(CONFIG.env, 'light', 0, 3, .05).name('light intensity')
+
+    // 7. Pruebas
+    add(g.addFolder('Pruebas'), {
+        'Reiniciar': () => location.reload(),
+        'Forzar crisis': () => actions.forceCrisis(),
+        'Forzar fallo': () => sm.go('FAILURE')
+    })
+}
