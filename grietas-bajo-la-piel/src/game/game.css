@@ -1,0 +1,111 @@
+/* Indice
+
+    0. Base
+    1. Botones del juego
+    2. Mensajes y pistas
+    3. Medidor de respiración
+    4. Fundido y tarjetas
+    5. Pop-ups
+    6. Controles táctiles
+    7. Tarjeta con texto que se escribe
+    8. Pop-up de controles
+    9. Diálogo con personajes
+
+    Tipografías (las mismas del index): Luckiest Guy para los títulos de la narrativa,
+    Dongle para títulos de pop-ups y botones, Outfit para el texto.
+*/
+
+/* 0. Base: contenedor del juego, colores y viñeta de ansiedad */
+.gx{position:fixed;inset:0;pointer-events:none;font-family:'Outfit',sans-serif;color:#E4FFFF;z-index:5}
+.gx>*{position:absolute}
+.gx p,.gx h2,.gx h3,.gx li{color:inherit} /* style.css pinta los textos con --color-texto (oscuro): aquí heredan el color claro del juego */
+.gx-vignette{inset:0;opacity:0;background:radial-gradient(ellipse at center,transparent 35%,rgba(0,0,0,.95) 100%)}
+
+/* 1. Botones del juego: salida rápida y música */
+.gx-btn{pointer-events:auto;background:rgba(32,24,38,.8);color:#E4FFFF;border:1px solid rgba(228,255,255,.4);border-radius:8px;padding:.5rem .9rem;font:inherit;cursor:pointer}
+.gx-exit{top:1rem;right:1rem}
+.gx-audio{top:1rem;left:1rem;display:flex;gap:.5rem}
+
+/* 2. Mensajes y pistas: legibles sobre cualquier fondo (claro en calma, oscuro en ansiedad) */
+.gx-msg{top:14%;left:50%;transform:translateX(-50%);width:max-content;max-width:min(90vw,44rem);text-align:center;font-size:1.3rem;line-height:1.35;padding:.6rem 1.3rem;background:rgba(32,24,38,.86);border:1px solid rgba(228,255,255,.25);border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.35)}
+.gx-msg:empty{display:none}
+.gx-hint{bottom:1rem;left:1rem;font-size:.9rem;padding:.4rem .8rem;background:rgba(32,24,38,.8);border-radius:8px}
+
+/* 3. Medidor de respiración */
+.gx-breath[hidden]{display:none}
+.gx-breath{bottom:5%;left:50%;transform:translateX(-50%);width:300px;display:flex;flex-direction:column;align-items:center}
+.gx-gauge{width:300px;display:block;overflow:visible}
+.gx-needle{pointer-events:none}
+.gx-label{width:340px;margin-top:-8px;padding:.1rem 0;background:#d9d9d9;color:#201826;text-align:center;font-family:'Dongle',sans-serif;font-weight:700;font-size:2.4rem;line-height:1.1}
+/* qué hacer con el clic ahora mismo: mantener (inhalar/retener) o soltar (exhalar) */
+.gx-breath-hint{margin-top:.4rem;padding:.25rem .8rem;border-radius:8px;background:rgba(32,24,38,.85);font-size:.95rem;white-space:nowrap;border:1px solid rgba(228,255,255,.25)}
+.gx-breath-hint:empty{display:none}
+.gx-breath-hint[data-action="hold"]{border-color:#7a9a85}
+.gx-breath-hint[data-action="release"]{border-color:#A6869B}
+
+/* 4. Fundido y tarjetas */
+.gx-fade{inset:0;background:#000;opacity:1;pointer-events:none}
+.gx-card{inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;text-align:center;padding:0 12%;z-index:2;background:rgba(32,24,38,.9)}
+.gx-card[hidden]{display:none}
+.gx-card h2{font-family:'Luckiest Guy',cursive;font-weight:400;font-size:clamp(2.6rem,7vw,4.6rem);line-height:1.05;letter-spacing:.03em;color:var(--color-principal,#F2C063)}
+.gx-card p{font-size:1.2rem;max-width:60ch;line-height:1.5}
+
+/* 5. Pop-ups: controles, cómo se juega, opción del MIO, finales y salida rápida: mismo aspecto que la advertencia del index */
+.gx-modal{inset:0;display:flex;align-items:center;justify-content:center;background:rgba(10,5,14,.78);pointer-events:auto;z-index:10;animation:gx-fondo .25s ease-out}
+@keyframes gx-fondo{from{opacity:0}to{opacity:1}}
+.gx-modal[hidden]{display:none}
+.gx-dialog{width:100%;max-width:min(560px,92vw);max-height:calc(100vh - 2rem);overflow:auto;padding:40px 40px 28px;background:var(--color-soporte-oscuro,#201826);color:var(--color-soporte-claro,#e4ffff);border:1px solid rgba(255,255,255,.12);border-radius:12px;box-shadow:0 24px 64px rgba(0,0,0,.55);display:flex;flex-direction:column;align-items:center;gap:12px}
+.gx-dialog-icon{width:64px;height:auto;aspect-ratio:44/52;fill:var(--color-advertencia-icono,#780A0F)}
+.gx-dialog h2{font-family:'Dongle',sans-serif;font-weight:700;font-size:4.5rem;line-height:.9;text-align:center;color:var(--color-soporte-claro,#e4ffff)}
+.gx-pause h2{color:var(--color-advertencia,#D01F2A)}
+.gx-dialog>p{width:100%;font-family:'Outfit',sans-serif;font-size:.95rem;line-height:1.55}
+.gx-choice .gx-dialog>p,.gx-ending .gx-dialog>p,.gx-controls .gx-dialog>p{text-align:center}
+.gx-sub{width:100%;text-align:center;margin-top:4px;font-family:'Dongle',sans-serif;font-weight:700;font-size:2rem;line-height:.9;color:inherit}
+.gx-list{width:100%;list-style:none;padding:0}
+.gx-list li{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;font-size:.95rem;line-height:1.35}
+.gx-list li::before{content:"";flex:none;width:8px;height:8px;margin-top:.4em;border-radius:2px;background:var(--color-advertencia,#D01F2A)}
+.gx-actions{display:flex;justify-content:space-between;align-items:center;width:100%;margin-top:16px}
+.gx-choice .gx-actions,.gx-ending .gx-actions{gap:1rem;flex-wrap:wrap;justify-content:center}
+.gx-tutorial .gx-actions,.gx-controls .gx-actions{justify-content:center}
+.gx-act{pointer-events:auto;display:inline-flex;align-items:center;gap:10px;padding:6px 10px;border:none;background:none;cursor:pointer;font-family:'Dongle',sans-serif;font-weight:700;font-size:2.75rem;line-height:1;color:var(--color-soporte-claro,#e4ffff);transition:color .2s}
+.gx-act:hover{color:var(--color-acento,#E3D0B5)}
+.gx-act:focus-visible{outline:3px solid var(--color-acento,#E3D0B5);outline-offset:2px;border-radius:6px}
+.gx-act svg{width:32px;height:32px;fill:none;stroke:var(--color-advertencia-flecha,#A6869B);stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s}
+.gx-act:hover svg:first-child{transform:translateX(-4px)}
+.gx-act:hover svg:last-child{transform:translateX(4px)}
+@media (max-width:768px){.gx-dialog{padding:28px 22px 20px}.gx-dialog h2{font-size:3.5rem}.gx-act{font-size:2.25rem}}
+/* Clic afuera de un pop-up: la caja se sacude (igual que la advertencia) */
+.gx-dialog.sacudir{animation:advertencia-sacudida .45s ease-in-out}
+
+/* 6. Controles táctiles: móvil: flechas a la izquierda, botón de interacción a la derecha */
+.gx-touch-on .gx-hint{display:none}
+.gx-touch{position:fixed;inset:0;pointer-events:none;z-index:6;user-select:none;-webkit-user-select:none;touch-action:none}
+.gx-touch[hidden]{display:none}
+.gx-pad{position:absolute;left:4%;bottom:6%;width:156px;height:156px}
+.gx-key{pointer-events:auto;position:absolute;width:52px;height:52px;border-radius:14px;border:1px solid rgba(228,255,255,.45);background:rgba(32,24,38,.65);color:#E4FFFF;font-size:1.3rem;display:flex;align-items:center;justify-content:center;touch-action:none;-webkit-tap-highlight-color:transparent}
+.gx-key.on{background:rgba(242,192,99,.75);color:#201826}
+.gx-up{left:52px;top:0}.gx-left{left:0;top:52px}.gx-right{right:0;top:52px}.gx-down{left:52px;bottom:0}
+.gx-go{right:5%;bottom:9%;width:84px;height:84px;border-radius:50%;font-family:'Dongle',sans-serif;font-weight:700;font-size:2.8rem}
+.gx-touch-on .gx-breath{bottom:24%}
+
+/* 7. Tarjeta con texto que se escribe: se puede pulsar para completarlo, y trae botón de continuar */
+.gx-card{pointer-events:auto}
+.gx-card-actions{margin-top:.5rem}
+.gx-card-actions[hidden]{display:none}
+
+/* 8. Pop-up de controles: teclas dibujadas. Se muestra la lista de computador o la táctil según el dispositivo */
+.gx-keys{width:100%;list-style:none;padding:0;display:grid;gap:12px}
+.gx-keys li{display:flex;align-items:center;gap:14px;font-size:.95rem;line-height:1.35}
+.gx-keycaps{display:inline-flex;gap:4px;flex:none;min-width:9.5rem}
+.gx-keys kbd{display:inline-flex;align-items:center;justify-content:center;min-width:2.1rem;height:2.1rem;padding:0 .5rem;border-radius:7px;background:var(--color-soporte-claro,#E4FFFF);color:#201826;border-bottom:3px solid var(--color-advertencia-flecha,#A6869B);font-family:'Dongle',sans-serif;font-weight:700;font-size:1.7rem;line-height:1}
+body.gx-touch-on .gx-keys--pc,body:not(.gx-touch-on) .gx-keys--touch{display:none}
+@media (max-width:480px){.gx-keys li{flex-direction:column;align-items:flex-start;gap:6px}}
+
+/* 9. Diálogo con personajes (mamá): caja abajo con el nombre arriba; E, Enter o "Continuar" avanzan */
+.gx-talk{left:50%;bottom:6%;transform:translateX(-50%);width:min(92vw,40rem);pointer-events:auto;padding:1.4rem 1.5rem .8rem;background:rgba(32,24,38,.94);border:1px solid rgba(228,255,255,.25);border-radius:14px;box-shadow:0 12px 36px rgba(0,0,0,.5);z-index:8;animation:gx-fondo .25s ease-out}
+.gx-talk[hidden]{display:none}
+.gx-talk-name{position:absolute;top:-1.15rem;left:1.2rem;padding:.05rem .9rem;background:var(--color-principal,#F2C063);color:#201826;border-radius:8px;font-family:'Dongle',sans-serif;font-weight:700;font-size:2rem;line-height:1.1}
+.gx-talk-text{font-size:1.15rem;line-height:1.5;min-height:3em}
+.gx-talk-actions{display:flex;justify-content:flex-end}
+.gx-talk .gx-act{font-size:2.2rem}
+.gx-touch-on .gx-talk{bottom:auto;top:12%}

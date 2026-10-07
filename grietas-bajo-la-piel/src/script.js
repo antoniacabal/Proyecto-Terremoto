@@ -16,7 +16,8 @@
         4.9 Animacion
     5. Color del scroll (todas las paginas)
     6. Juego (narrativa.html)
-    7. Inicio
+    7. Mapa de apoyo (index.html)
+    8. Inicio
 
 */
 
@@ -347,9 +348,6 @@ async function iniciarMuestra() {
 }
 
 // 5. Color del scroll -----------------
-    // La barra de scroll cambia de color segun la zona de la pagina:
-    // si mas de la mitad de la pantalla es zona oscura (escena, pie de pagina),
-    // el html recibe la clase .scroll-oscuro (los colores estan en style.css)
 function iniciarScroll() {
     const oscuras = document.querySelectorAll('.escena, .footer')
     if (!oscuras.length) return
@@ -389,8 +387,18 @@ async function iniciarJuego() {
     await import('./game/main.js')
 }
 
-// 7. Inicio -----------------
+// 7. Mapa de apoyo -----------------
+    // (index.html) Google Maps con marcadores, filtros y tarjetas propias: ver src/mapa/
+async function iniciarMapa() {
+    if (!document.getElementById('mapa-apoyo')) return
+
+    const { iniciarMapaApoyo } = await import('./mapa/mapa.js')
+    iniciarMapaApoyo()
+}
+
+// 8. Inicio -----------------
 iniciarMenu()
+iniciarMapa()
 iniciarAdvertencia()
 iniciarCarrusel()
 iniciarScroll()

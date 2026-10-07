@@ -3,11 +3,12 @@
     0. Generales / Colores
     1. Tipografias
     2. Header / Cabecera
-        2.1 Menu
+        2.1 Menú
     3. Enlaces / Botones
-        3.1 Boton inicio
+        3.1 Botón inicio
     4. Body
         4.1 Scroll
+        4.2 Página del juego (narrativa.html)
     5. Main
         5.1 Titulos
         5.2 Escena
@@ -20,7 +21,7 @@
         5.7 Teléfonos
         5.8 Avisos
         5.9 Linea de ayuda
-        5.10 Carusel
+        5.10 Carrusel
         5.11 Advertencia
     6. Footer
     7. Reactive
@@ -42,6 +43,9 @@
     --color-terceario: #799180; /* Decoraciones */
     --color-soporte-oscuro: #201826; /* Algunos textos, encabezado/pie de página, iconos, fuerte contraste */
     --color-soporte-claro: #e4ffff; /* Cuadros informativos/fondos tranquilos */
+    --color-tarjeta-sombra: #DE924A; /* Caja de atrás de todas las tarjetas, teléfonos y avisos (naranja claro) */
+    --color-scroll-pista: #DABE9E; /* Franja del scroll sobre fondo crema (crema un poco más oscuro) */
+    --color-scroll-pulgar: #BF4E24; /* Pedazo y flechas del scroll sobre fondo crema (naranja) */
     --color-atencion: #BF4E24; /* Color extra para llamar la atencion/alertas */
     --color-texto: #101720; /* Color negro para textos que no es negro puro */
     --color-escena: rgb(10, 5, 14); /* Fondo de la sección del juego (muestra del index y narrativa) */
@@ -88,7 +92,8 @@ p{
     padding: 20px 2% 15px 2%;
     display: flex;
     flex-wrap: nowrap;
-    justify-content: space-between;
+    justify-content: flex-start;
+    gap: 22px;
     align-items: center;
     border-bottom: 3px solid var(--color-terceario);
     background: var(--color-soporte-oscuro);
@@ -108,6 +113,12 @@ p{
     {
         position: relative;
         z-index: 30;
+    }
+
+    #cabecera-principal .menu /* el menú va a la izquierda, antes del título */
+    {
+        order: -1;
+        display: flex;
     }
 
     .menu-boton
@@ -181,15 +192,15 @@ p{
     {
         position: absolute;
         top: 100%;
-        right: 0;
+        left: 0;
         z-index: 40;
         width: min(600px, 94vw);
         max-height: calc(100vh - 90px);
         overflow-y: auto;
         padding: 24px 28px 14px;
         border-bottom: 3px solid var(--color-terceario);
-        border-left: 3px solid var(--color-terceario);
-        border-radius: 0 0 0 14px;
+        border-right: 3px solid var(--color-terceario);
+        border-radius: 0 0 14px 0;
         background: var(--color-soporte-oscuro);
         box-shadow: 0 24px 48px rgba(0, 0, 0, 0.45);
     }
@@ -318,13 +329,6 @@ html, body
     min-height: 100vh;
 }
 
-html.sin-scroll, body.sin-scroll
-{
-    height: 100%;
-    overflow: hidden;
-    overscroll-behavior: none;
-}
-
 html, body{
     max-width: 100%;
     overflow-x: hidden;
@@ -335,19 +339,19 @@ html, body{
     {
         syntax: "<color>";
         inherits: true;
-        initial-value: #E3D0B5;
+        initial-value: #DABE9E;
     }
 
     @property --scroll-pulgar
     {
         syntax: "<color>";
         inherits: true;
-        initial-value: #201826;
+        initial-value: #BF4E24;
     }
 
     html{
-        --scroll-pista: var(--color-acento);
-        --scroll-pulgar: var(--color-soporte-oscuro);
+        --scroll-pista: var(--color-scroll-pista);
+        --scroll-pulgar: var(--color-scroll-pulgar);
         scrollbar-color: var(--scroll-pulgar) var(--scroll-pista);
         transition: --scroll-pista 0.4s ease, --scroll-pulgar 0.4s ease;
     }
@@ -361,10 +365,13 @@ html, body{
     html::-webkit-scrollbar-track{ background: var(--scroll-pista); }
     html::-webkit-scrollbar-thumb{ background: var(--scroll-pulgar); border-radius: 6px; border: 2px solid var(--scroll-pista); }
 
-/* 5. Main ----------------- */
-main
+/* 4.2 Página del juego (narrativa.html) */
+
+html.sin-scroll, body.sin-scroll
 {
-    flex: 1;
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
 }
 
 body.pagina-narrativa
@@ -381,10 +388,10 @@ body.pagina-narrativa
     height: 100%;
 }
 
-html.modal-abierto
+/* 5. Main ----------------- */
+main
 {
-    overflow: hidden;
-    scrollbar-gutter: stable;
+    flex: 1;
 }
 
     /* 5.1 Titulos */
@@ -645,13 +652,417 @@ html.modal-abierto
         background: linear-gradient(to top, rgba(32, 24, 38, 0.8), rgba(32, 24, 38, 0.15) 55%, transparent);
     }
 
+    /* Mapa de apoyo (los elementos los crea src/mapa/mapa.js) */
+    .articulo-mapa
+    {
+        /* Color de cada categoría: marcadores, etiquetas y líneas */
+        --tipo-psicologica: #A6869B;
+        --tipo-emergencia: #BF4E24;
+        --tipo-hospital: #799180;
+        --tipo-desastres: #F2C063;
+        --tipo-apoyo: #8296B7;
+    }
+
+    .articulo-mapa [data-tipo="psicologica"] { --tipo: var(--tipo-psicologica); }
+    .articulo-mapa [data-tipo="emergencia"] { --tipo: var(--tipo-emergencia); }
+    .articulo-mapa [data-tipo="hospital"] { --tipo: var(--tipo-hospital); }
+    .articulo-mapa [data-tipo="desastres"] { --tipo: var(--tipo-desastres); }
+    .articulo-mapa [data-tipo="apoyo"] { --tipo: var(--tipo-apoyo); }
+
+    .mapa-filtros
+    {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 22px;
+    }
+
+    .mapa-filtro
+    {
+        font-family: "Outfit", sans-serif;
+        font-size: 1rem;
+        padding: 8px 18px;
+        border: 1.5px solid var(--color-soporte-oscuro);
+        border-radius: 999px;
+        background: var(--color-soporte-claro);
+        color: var(--color-soporte-oscuro);
+        cursor: pointer;
+        transition: background 0.2s, color 0.2s, transform 0.2s;
+    }
+
+    .mapa-filtro:hover
+    {
+        transform: translateY(-2px);
+    }
+
+    .mapa-filtro[aria-pressed="true"]
+    {
+        background: var(--color-soporte-oscuro);
+        color: var(--color-principal);
+    }
+
+    .mapa-filtro:focus-visible,
+    .mapa-pin:focus-visible
+    {
+        outline: 3px solid var(--color-atencion);
+        outline-offset: 3px;
+    }
+
+    .mapa-pin:focus-visible
+    {
+        border-radius: 50%;
+    }
+
     .mapa-contenedor
     {
+        position: relative;
         width: 100%;
-        height: 520px;
-        margin-top: 20px;
+        height: 460px;
+        margin-top: 18px;
+        border: 1.5px solid var(--color-soporte-oscuro);
+        border-radius: 12px;
+        background: #f1e6d4;
+        isolation: isolate;
+    }
+
+    .mapa-contenedor::before /* sombra desplazada, como las tarjetas */
+    {
+        content: "";
+        position: absolute;
+        inset: 8px -8px -8px 8px;
+        z-index: -1;
+        border-radius: 12px;
+        background: var(--color-tarjeta-sombra);
+    }
+
+    .mapa-lienzo
+    {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        border-radius: 11px;
+        background: #f1e6d4;
+        font-family: "Outfit", sans-serif;
+    }
+
+    /* Calles de OpenStreetMap un poco más cálidas, para que combinen con la paleta del proyecto */
+    .mapa-lienzo .leaflet-tile-pane
+    {
+        filter: saturate(0.45) sepia(0.3) brightness(1.04) contrast(0.95);
+    }
+
+    .mapa-lienzo .leaflet-control-zoom a
+    {
+        color: var(--color-soporte-oscuro);
+    }
+
+    .mapa-lienzo .leaflet-control-attribution
+    {
+        font-size: 11px;
+        background: rgba(241, 230, 212, 0.85);
+    }
+
+    /* Marcadores: Leaflet mueve .mapa-pin; el círculo con el ícono va adentro */
+    .mapa-pin
+    {
+        background: none;
+        border: 0;
+    }
+
+    .mapa-marcador
+    {
+        display: grid;
+        place-items: center;
+        width: 100%;
+        height: 100%;
+        border: 2px solid var(--color-soporte-oscuro);
+        border-radius: 50%;
+        background: var(--tipo);
+        box-shadow: 3px 3px 0 var(--color-soporte-oscuro);
+        font-size: 20px;
+        line-height: 1;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .mapa-pin:hover .mapa-marcador,
+    .mapa-pin:focus-visible .mapa-marcador
+    {
+        transform: scale(1.15);
+    }
+
+    .mapa-pin--activo
+    {
+        z-index: 1000 !important; /* por encima de los demás marcadores */
+    }
+
+    .mapa-pin--activo .mapa-marcador
+    {
+        transform: scale(1.25);
+        box-shadow: 0 0 0 5px rgba(242, 192, 99, 0.75), 3px 3px 0 var(--color-soporte-oscuro);
+    }
+
+    /* Tarjeta de detalle: flota sobre el mapa */
+    .mapa-ficha
+    {
+        position: absolute;
+        top: 16px;
+        left: 16px;
+        z-index: 1001; /* por encima de las capas de Leaflet */
+        width: min(360px, calc(100% - 32px));
+        max-height: calc(100% - 32px);
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 18px 20px 16px;
+        border: 1.5px solid var(--color-soporte-oscuro);
+        border-radius: 12px;
         background: var(--color-soporte-claro);
+        box-shadow: 6px 6px 0 var(--color-tarjeta-sombra);
+        font-family: "Outfit", sans-serif;
+        color: var(--color-texto);
+    }
+
+    .mapa-ficha[hidden]
+    {
+        display: none;
+    }
+
+    .mapa-ficha-cerrar
+    {
+        position: absolute;
+        top: 8px;
+        right: 10px;
+        width: 32px;
+        height: 32px;
+        border: none;
+        border-radius: 50%;
+        background: transparent;
+        font-size: 26px;
+        line-height: 1;
+        color: var(--color-soporte-oscuro);
+        cursor: pointer;
+    }
+
+    .mapa-ficha-cerrar:hover
+    {
+        background: var(--color-acento);
+    }
+
+    .mapa-ficha-tipo
+    {
+        align-self: flex-start;
+        padding: 3px 12px;
+        border: 1.5px solid var(--color-soporte-oscuro);
+        border-radius: 999px;
+        background: var(--tipo);
+        font-size: 0.85rem;
+        color: var(--color-soporte-oscuro);
+    }
+
+    .mapa-ficha-nombre
+    {
+        font-family: "Dongle", sans-serif;
+        font-weight: 700;
+        font-size: 34px;
+        line-height: 0.9;
+        padding-right: 28px;
+        color: var(--color-soporte-oscuro);
+        outline: none;
+    }
+
+    .mapa-ficha-aviso /* puntos temporales de la emergencia: confirmar antes de ir */
+    {
+        padding: 8px 12px;
+        border: 1.5px solid var(--color-atencion);
         border-radius: 8px;
+        background: rgba(242, 192, 99, 0.35);
+        font-size: 0.88rem;
+        line-height: 1.35;
+    }
+
+    .mapa-ficha-nota
+    {
+        font-size: 0.95rem;
+        line-height: 1.35;
+    }
+
+    .mapa-ficha dl
+    {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .mapa-ficha dt
+    {
+        font-size: 0.75rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--color-terceario);
+    }
+
+    .mapa-ficha dd
+    {
+        font-size: 0.95rem;
+        line-height: 1.35;
+    }
+
+    .mapa-ficha a
+    {
+        color: var(--color-atencion);
+    }
+
+    .mapa-ficha-pendiente
+    {
+        font-style: italic;
+        color: var(--color-terceario);
+    }
+
+    .mapa-ficha-acciones
+    {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 4px;
+    }
+
+    .mapa-ficha .mapa-ficha-boton
+    {
+        padding: 7px 16px;
+        border: 1.5px solid var(--color-soporte-oscuro);
+        border-radius: 999px;
+        background: var(--color-principal);
+        color: var(--color-soporte-oscuro);
+        font-size: 0.9rem;
+        text-decoration: none;
+        transition: background 0.2s, color 0.2s;
+    }
+
+    .mapa-ficha .mapa-ficha-boton--claro
+    {
+        background: transparent;
+    }
+
+    .mapa-ficha .mapa-ficha-boton:hover
+    {
+        background: var(--color-atencion);
+        color: var(--color-soporte-claro);
+    }
+
+    .mapa-ficha-fuente
+    {
+        font-size: 0.75rem;
+        color: var(--color-terceario);
+    }
+
+    .mapa-ficha .mapa-ficha-fuente a
+    {
+        color: inherit;
+    }
+
+    /* Líneas telefónicas debajo del mapa */
+    .mapa-lineas-titulo
+    {
+        margin-top: 44px;
+    }
+
+    .mapa-lineas
+    {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+        gap: 18px;
+        margin-top: 14px;
+        list-style: none;
+    }
+
+    .mapa-linea
+    {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding: 12px 16px 14px;
+        border: 1.5px solid var(--color-soporte-oscuro);
+        border-left: 8px solid var(--tipo);
+        border-radius: 10px;
+        background: var(--color-soporte-claro);
+        font-family: "Outfit", sans-serif;
+    }
+
+    .mapa-linea[hidden],
+    .mapa-lineas[hidden],
+    .mapa-lineas-titulo[hidden]
+    {
+        display: none;
+    }
+
+    .mapa-linea-numero
+    {
+        font-family: "Dongle", sans-serif;
+        font-weight: 700;
+        font-size: 44px;
+        line-height: 0.85;
+        color: var(--color-atencion);
+        text-decoration: none;
+    }
+
+    .mapa-linea-numero:hover
+    {
+        text-decoration: underline;
+    }
+
+    .mapa-linea-nombre
+    {
+        font-weight: 700;
+    }
+
+    .mapa-linea p
+    {
+        font-size: 0.95rem;
+        line-height: 1.3;
+    }
+
+    .mapa-linea a:not(.mapa-linea-numero)
+    {
+        color: var(--color-atencion);
+    }
+
+    .mapa-nota
+    {
+        margin-top: 24px;
+        font-size: 0.95rem;
+        color: var(--color-soporte-oscuro);
+    }
+
+    @media (max-width: 768px)
+    {
+        .mapa-contenedor
+        {
+            height: 420px;
+        }
+
+        .mapa-filtros
+        {
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            padding-bottom: 6px;
+        }
+
+        .mapa-filtro
+        {
+            flex: none;
+        }
+
+        /* La tarjeta pasa a ser una hoja desde abajo */
+        .mapa-ficha
+        {
+            top: auto;
+            bottom: 12px;
+            left: 12px;
+            width: calc(100% - 24px);
+            max-height: 70%;
+        }
     }
 
     .context, .carusel, main > article
@@ -693,6 +1104,8 @@ html.modal-abierto
     {
         margin-top: 8px;
     }
+
+/* 5.5 Recursos */
 
     main > article
     {
@@ -883,17 +1296,13 @@ html.modal-abierto
         inset: 7px -7px -7px 7px;
         z-index: -1;
         border-radius: 12px;
-        background: var(--color-principal);
+        background: var(--color-tarjeta-sombra);
     }
 
-    .tarjeta--verde::before
-    {
-        background: var(--color-terceario);
-    }
-
+    .tarjeta--verde::before,
     .tarjeta--alerta::before
     {
-        background: var(--color-atencion);
+        background: var(--color-tarjeta-sombra);
     }
 
     .tarjeta .subtitulo
@@ -967,7 +1376,7 @@ html.modal-abierto
         inset: 5px -5px -5px 5px;
         z-index: -1;
         border-radius: 10px;
-        background: var(--color-atencion);
+        background: var(--color-tarjeta-sombra);
     }
 
     .telefono-numero
@@ -1010,7 +1419,7 @@ html.modal-abierto
         inset: 7px -7px -7px 7px;
         z-index: -1;
         border-radius: 12px;
-        background: var(--color-atencion);
+        background: var(--color-tarjeta-sombra);
     }
 
     .aviso ul
@@ -1224,6 +1633,12 @@ html.modal-abierto
     .carrusel-punto[data-distancia="2"] { width: 10px; height: 10px; }
 
     /* 5.11 Advertencia */
+html.modal-abierto
+{
+    overflow: hidden;
+    scrollbar-gutter: stable;
+}
+
     .advertencia
     {
         margin: auto;

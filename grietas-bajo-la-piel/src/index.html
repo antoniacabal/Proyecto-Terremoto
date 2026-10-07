@@ -22,8 +22,7 @@
                 <h1 class="titulo-principal" id="titulo-header"> Grietas bajo la piel </h1>
             </a>
             <nav class="menu" aria-label="Navegación principal">
-                <button class="menu-boton" type="button" aria-expanded="false" aria-controls="menu-panel">
-                    <span class="menu-boton-texto">Menú</span>
+                <button class="menu-boton" type="button" aria-label="Menú" aria-expanded="false" aria-controls="menu-panel">
                     <span class="menu-boton-icono" aria-hidden="true"><span></span><span></span><span></span></span>
                 </button>
                 <div class="menu-panel" id="menu-panel" hidden>
@@ -183,11 +182,21 @@
                 <article role="article" class="articulo-mapa" id="mapa-apoyo">
                     <h2 class="titulo"> Mapa de apoyo </h2>
                     <p> 
-                        No tienes que atravesar esto solo. Este mapa reúne servicios de apoyo cercanos, como atención psicológica y ayuda material, para que puedas encontrar un lugar al cual acudir cuando lo necesites. Explóralo a tu ritmo y busca el punto que mejor se ajuste a ti. 
+                        No tienes que atravesar esto solo. Este mapa reúne lugares reales de Cali donde puedes encontrar atención psicológica, salud, ayuda en emergencias y orientación ante desastres. Explóralo a tu ritmo: toca un punto para ver su dirección, teléfono y horario.
                     </p>
+                    <!-- Filtros (los crea src/mapa/mapa.js a partir de src/mapa/recursos.js) -->
+                    <div class="mapa-filtros" role="group" aria-label="Mostrar en el mapa"></div>
+
                     <div id="mapa-interactivo" class="mapa-contenedor">
-                        <!-- Aquí se integra el mapa interactivo (ej. Leaflet / Google Maps) -->
+                        <div class="mapa-lienzo" aria-label="Mapa de Cali con lugares de apoyo"></div>
                     </div>
+
+                    <h3 class="subtitulo mapa-lineas-titulo"> Líneas que puedes llamar desde cualquier lugar </h3>
+                    <ul class="mapa-lineas"></ul>
+
+                    <p class="mapa-nota">
+                        Datos revisados el <span class="mapa-revisado"></span> en fuentes oficiales y medios confiables. Después del sismo algunos servicios pueden cambiar sus horarios: si puedes, llama antes de ir. Si estás en peligro, marca 123.
+                    </p>
                 </article>
             
             </section>
