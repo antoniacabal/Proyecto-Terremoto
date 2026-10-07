@@ -21,6 +21,52 @@
             <a href="index.html" aria-label="Ir a la página de inicio de Grietas bajo la piel">
                 <h1 class="titulo-principal" id="titulo-header"> Grietas bajo la piel </h1>
             </a>
+            <nav class="menu" aria-label="Navegación principal">
+                <button class="menu-boton" type="button" aria-expanded="false" aria-controls="menu-panel">
+                    <span class="menu-boton-texto">Menú</span>
+                    <span class="menu-boton-icono" aria-hidden="true"><span></span><span></span><span></span></span>
+                </button>
+                <div class="menu-panel" id="menu-panel" hidden>
+                    <ul class="menu-lista">
+                        <li class="menu-grupo">
+                            <a class="menu-enlace menu-enlace--principal" href="index.html" aria-current="page">Inicio</a>
+                        </li>
+                        <li class="menu-grupo">
+                            <a class="menu-enlace menu-enlace--principal" href="contexto.html">Contexto del proyecto</a>
+                            <ul>
+                                <li><a class="menu-enlace" href="contexto.html#punto-de-partida">Punto de partida</a></li>
+                                <li><a class="menu-enlace" href="contexto.html#que-buscamos">Qué buscamos</a></li>
+                                <li><a class="menu-enlace" href="contexto.html#historia">Historia del proyecto</a></li>
+                                <li><a class="menu-enlace" href="contexto.html#protagonista">Creación de la protagonista</a></li>
+                            </ul>
+                        </li>
+                        <li class="menu-grupo">
+                            <a class="menu-enlace menu-enlace--principal" href="respiracion-consciente.html">Técnicas de respiración</a>
+                            <ul>
+                                <li><a class="menu-enlace" href="respiracion-consciente.html#suelo">El suelo ya no se mueve</a></li>
+                                <li><a class="menu-enlace" href="respiracion-consciente.html#mapea">Mapea lo que sientes</a></li>
+                                <li><a class="menu-enlace" href="respiracion-consciente.html#anclaje">Anclaje al presente</a></li>
+                                <li><a class="menu-enlace" href="respiracion-consciente.html#respira">Pausa y respira</a></li>
+                                <li><a class="menu-enlace" href="respiracion-consciente.html#pap">Primeros auxilios psicológicos</a></li>
+                                <li><a class="menu-enlace" href="respiracion-consciente.html#ayuda">Redes de apoyo</a></li>
+                            </ul>
+                        </li>
+                        <li class="menu-grupo">
+                            <a class="menu-enlace menu-enlace--principal" href="herramientas-prevencion.html">Recursos de prevención</a>
+                            <ul>
+                                <li><a class="menu-enlace" href="herramientas-prevencion.html#desastre">De fenómeno a desastre</a></li>
+                                <li><a class="menu-enlace" href="herramientas-prevencion.html#protocolo">Protocolo en crisis</a></li>
+                                <li><a class="menu-enlace" href="herramientas-prevencion.html#primeros-auxilios">Primeros auxilios</a></li>
+                                <li><a class="menu-enlace" href="herramientas-prevencion.html#mascotas">Mascotas</a></li>
+                                <li><a class="menu-enlace" href="herramientas-prevencion.html#telefonos">Números de emergencia</a></li>
+                            </ul>
+                        </li>
+                        <li class="menu-grupo">
+                            <a class="menu-enlace menu-enlace--principal" href="index.html#mapa-apoyo">Mapa de apoyo</a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
         </header>
     
         <main role="main">
@@ -29,42 +75,104 @@
             <section class="escena">
                 <div class="escena-contenido">
                     <h1 class="titulo-principal"> Grietas bajo la piel </h1>
-                    <p class="escena-parrafo"> Es un día cualquiera en una ciudad que todavía guarda las marcas del temblor. Caminas de regreso a tu rutina, pero algo dentro no termina de calmarse. Aquí no hay respuestas correctas ni incorrectas: solo tu respiración y el ritmo con el que decides atravesar el miedo. Puedes detenerte cuando lo necesites. </p>
+                    <p class="escena-parrafo">
+                        La ciudad parece haber vuelto a la normalidad. Gabriela también intenta hacerlo.
+                    </p>
+                    <p class="escena-parrafo">
+                        Camina por las mismas calles, repite los mismos pasos y vuelve a enfrentarse a una rutina que antes parecía sencilla. Pero algo ha cambiado. Un sonido, una vibración, el movimiento de un objeto… cualquier pequeño detalle puede devolverla, por un instante, a ese momento que todavía permanece bajo su piel.
+                    </p>
+                    <p class="escena-parrafo">
+                        Ahora tendrás que acompañarla mientras atraviesa esos recuerdos y aprende a distinguir entre el peligro que ya pasó y el miedo que aún permanece.
+                    </p>
+                    <p class="escena-parrafo">
+                        No tienes que detener el miedo. Solo encontrar la forma de atravesarlo.
+                    </p>
                     <button type="button" class="boton" id="boton-iniciar" aria-haspopup="dialog">Iniciar</button>
                 </div>
                 <div class="escena-canvas">
                     <canvas class="webgl" aria-label="Muestra del juego"></canvas>
                 </div>
-                <script type="module" src="./muestra.js"></script>
             </section>
+
+            <!-- Advertencia previa al juego -->
+            <dialog class="advertencia" id="advertencia" role="alertdialog" aria-labelledby="advertencia-titulo" aria-describedby="advertencia-texto">
+                <div class="advertencia-caja">
+                    <svg class="advertencia-icono" viewBox="0 0 24 22" aria-hidden="true" focusable="false">
+                        <path d="M12 2.5 L21.5 19 H2.5 Z" fill="currentColor" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/>
+                        <rect class="exclamacion" x="11" y="8" width="2" height="5.6" rx="1"/>
+                        <circle class="exclamacion" cx="12" cy="16.4" r="1.15"/>
+                    </svg>
+                    <h2 class="titulo advertencia-titulo" id="advertencia-titulo">Advertencia</h2>
+
+                    <!-- Aviso de compatibilidad -->
+                    <div class="advertencia-aviso">
+                        <h3 class="titulo advertencia-aviso-titulo">Pensada para computador</h3>
+                        <p>
+                            Esta experiencia fue creada para verse desde un computador. En teléfonos y pantallas pequeñas pueden aparecer errores o fallos visuales. Para vivirla como fue pensada, se recomienda abrirla desde un computador.
+                        </p>
+                    </div>
+
+                    <p class="advertencia-texto" id="advertencia-texto">
+                        Esta experiencia aborda las emociones y los efectos psicológicos que deja un terremoto. Algunas escenas pueden resultar sensibles para quienes hayan vivido un desastre natural o una pérdida. Si en algún momento surge malestar, es válido detenerse y buscar apoyo en la sección de recursos de ayuda.
+                    </p>
+
+                    <h3 class="titulo advertencia-subtitulo">Esta experiencia incluye:</h3>
+                    <ul class="advertencia-lista">
+                        <li>Sonidos fuertes</li>
+                        <li>Luces parpadeantes</li>
+                        <li>Imaginería traumática</li>
+                        <li>Situaciones de pánico y emergencia</li>
+                        <li>Temas de duelo y pérdida</li>
+                    </ul>
+
+                    <div class="advertencia-acciones">
+                        <button type="button" class="advertencia-accion advertencia-accion--volver" data-volver>
+                            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 5 L5 12 L12 19 M20 5 L13 12 L20 19" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            Volver
+                        </button>
+                        <a class="advertencia-accion advertencia-accion--seguir" href="narrativa.html">
+                            Seguir
+                            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 5 L19 12 L12 19 M4 5 L11 12 L4 19" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </a>
+                    </div>
+                </div>
+            </dialog>
+
 
             <!-- Sección del contenido -->
             <section class="contenido">
 
                 <!-- Contexto del proyecto -->
-                <article role="article" class="articulo-contexto">
+                <article role="article" class="articulo-contexto" id="contexto-proyecto">
                     <img class="articulo-imagen" src="" alt="Imagen del contexto del proyecto">
                     <div class="articulo-texto">
                         <h2 class="titulo"> Contexto del proyecto </h2>
-                        <p> Tras el sismo del 10 de agosto, con epicentro en el Chocó y fuertes efectos en Cali, la comunidad académica vivió un evento traumático en medio de su cotidianidad. Pasada la emergencia quedaron secuelas que no se ven: miedo, ansiedad, hipervigilancia y agotamiento, que suelen subestimarse durante la recuperación. Grietas bajo la piel es una plataforma web interactiva que busca visibilizar ese trauma sin revictimizar, y acompañar a quienes lo vivieron con herramientas de aceptación emocional, ejercicios de calma y recursos de prevención validados por aliados como la Brigada de Rescate Topos Tlaltelolco. </p>
+                        <p>
+                            Tras el sismo del 10 de agosto, con epicentro en el Chocó y fuertes efectos en Cali, la comunidad académica vivió un evento traumático que irrumpió de manera abrupta en su cotidianidad. Aunque la emergencia terminó y las actividades comenzaron poco a poco a retomarse, sus consecuencias no desaparecieron con ella. Quedaron secuelas que no siempre son visibles: miedo, ansiedad, hipervigilancia, dificultad para recuperar la sensación de seguridad y agotamiento emocional, reacciones que pueden ser subestimadas durante los procesos de recuperación.
+                        </p>
+                        <p>
+                            En este contexto surge Grietas bajo la piel, una plataforma web interactiva que busca visibilizar las huellas emocionales que pueden permanecer después de una experiencia sísmica, sin revictimizar ni reducir el proceso de cada persona a una única experiencia. A través de una narrativa inmersiva, el usuario acompaña a Gabriela, una joven que intenta retomar su vida cotidiana mientras enfrenta las reacciones que el recuerdo del sismo despierta en su cuerpo y en su entorno.
+                        </p>
                         <a class="enlaces" href="contexto.html"> Ver más </a>
                     </div>
                 </article>
 
                 <!-- Recursos de ayuda y prevención -->
-                <article role="article" class="articulo-recursos">
+                <article role="article" class="articulo-recursos" id="recursos">
                     <h2 class="titulo"> Recursos de ayuda y prevención </h2>
-                    <p> Después de un sismo, cuidar el cuerpo y la mente también es parte de la recuperación. Aquí encuentras ejercicios de respiración consciente para recuperar la calma cuando la ansiedad aparece, y recursos de prevención, con orientación clara y sin tecnicismos, para saber cómo actuar antes, durante y después de una emergencia. Sentir miedo o angustia es normal, y buscar apoyo es un paso válido. </p>
+                    <p> 
+                        Después de un sismo, cuidar el cuerpo y la mente también es parte de la recuperación. Aquí encuentras ejercicios de respiración consciente para recuperar la calma cuando la ansiedad aparece, y recursos de prevención, con orientación clara y sin tecnicismos, para saber cómo actuar antes, durante y después de una emergencia. Sentir miedo o angustia es normal, y buscar apoyo es un paso válido. 
+                    </p>
                     <div class="recursos-grid">
                         <div class="recurso-caja">
                             <a href="respiracion-consciente.html" aria-label="Ir a la página sobre las técnicas de respiración consciente">
-                                <img class="recurso-imagen" src="./media/salud-mental-1.png" alt="Foto de una mujer meditando en un campo con el sol a sus espaldas">
+                                <img class="recurso-imagen" src="./media/salud-mental-1.jpg" alt="Foto de una mujer meditando en un campo con el sol a sus espaldas">
                                 <h3 class="subtitulo"> Técnicas de respiración consciente </h3>
                             </a>
                         </div>
                         <div class="recurso-caja">
                             <a href="herramientas-prevencion.html" aria-label="Ir a la página sobre los recursos de prevención">
-                                <img class="recurso-imagen" src="./media/prevencion-1.png" alt="Imagen de los recursos de prevención">
+                                <img class="recurso-imagen" src="./media/prevencion-1.jpg" alt="Imagen de los recursos de prevención">
                                 <h3 class="subtitulo"> Recursos de prevención </h3>
                             </a>
                         </div>
@@ -72,9 +180,11 @@
                 </article>
 
                 <!-- Mapa de apoyo -->
-                <article role="article" class="articulo-mapa">
+                <article role="article" class="articulo-mapa" id="mapa-apoyo">
                     <h2 class="titulo"> Mapa de apoyo </h2>
-                    <p> No tienes que atravesar esto solo. Este mapa reúne servicios de apoyo cercanos, como atención psicológica y ayuda material, para que puedas encontrar un lugar al cual acudir cuando lo necesites. Explóralo a tu ritmo y busca el punto que mejor se ajuste a ti. </p>
+                    <p> 
+                        No tienes que atravesar esto solo. Este mapa reúne servicios de apoyo cercanos, como atención psicológica y ayuda material, para que puedas encontrar un lugar al cual acudir cuando lo necesites. Explóralo a tu ritmo y busca el punto que mejor se ajuste a ti. 
+                    </p>
                     <div id="mapa-interactivo" class="mapa-contenedor">
                         <!-- Aquí se integra el mapa interactivo (ej. Leaflet / Google Maps) -->
                     </div>
@@ -88,59 +198,18 @@
                 <h2 class="patrocinadores-titulo"> Con el apoyo de </h2>
                 <ul class="patrocinadores-lista">
                     <li><a href="https://www.topos.mx/" target="_blank" rel="noopener noreferrer">
-                        <img class="patrocinador-logo" src="./media/logo-topos-tlaltelolco.webp" alt="Topos México">
+                        <img class="patrocinador-logo" src="./media/logo-topos-tlaltelolco.webp" alt="Logo de la brigada de rescate Topos tlaltelolco">
                     </a></li>
                     <li><a href="https://www.who.int/es/health-topics/mental-health#tab=tab_1" target="_blank" rel="noopener noreferrer">
-                        <img class="patrocinador-logo" src="./media/logo-Organizacion_Mundial_de_la_Salud.webp" alt="Organización Mundial de la Salud">
+                        <img class="patrocinador-logo" src="./media/logo-Organizacion_Mundial_de_la_Salud.webp" alt="Logo de la Organización Mundial de la Salud">
+                    </a></li>
+                    <li><a href="https://www.uao.edu.co/" target="_blank" rel="noopener noreferrer">
+                        <img class="patrocinador-logo" src="./media/logo-uao.png" alt="Logo de la Universidad Autónoma de Occidente ">
                     </a></li>
                 </ul>
             </div>
         </footer>
-        
-        
-        <!-- Advertencia previa al juego -->
-        <dialog class="advertencia" id="advertencia" role="alertdialog" aria-labelledby="advertencia-titulo" aria-describedby="advertencia-texto">
-            <div class="advertencia-caja">
-                <svg class="advertencia-icono" viewBox="0 0 24 22" aria-hidden="true" focusable="false">
-                    <path d="M12 2.5 L21.5 19 H2.5 Z" fill="currentColor" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/>
-                    <rect class="exclamacion" x="11" y="8" width="2" height="5.6" rx="1"/>
-                    <circle class="exclamacion" cx="12" cy="16.4" r="1.15"/>
-                </svg>
-                <h2 class="titulo advertencia-titulo" id="advertencia-titulo">Advertencia</h2>
 
-                <!-- Aviso de compatibilidad: solo se ve en teléfonos y pantallas pequeñas (ver style.css) -->
-                <div class="advertencia-aviso">
-                    <h3 class="titulo advertencia-aviso-titulo">Pensada para computador</h3>
-                    <p>Esta experiencia fue creada para verse desde un computador. En teléfonos y pantallas pequeñas pueden aparecer errores o fallos visuales. Para vivirla como fue pensada, se recomienda abrirla desde un computador.</p>
-                </div>
-
-                <p class="advertencia-texto" id="advertencia-texto">
-                    Esta experiencia aborda las emociones y los efectos psicológicos que deja un terremoto. Algunas escenas pueden resultar sensibles para quienes hayan vivido un desastre natural o una pérdida. Si en algún momento surge malestar, es válido detenerse y buscar apoyo en la sección de recursos de ayuda.
-                </p>
-
-                <h3 class="titulo advertencia-subtitulo">Esta experiencia incluye:</h3>
-                <!-- Agregar o quitar advertencias concretas en esta lista -->
-                <ul class="advertencia-lista">
-                    <li>Sonidos fuertes</li>
-                    <li>Luces parpadeantes</li>
-                    <li>Imaginería traumática</li>
-                    <li>Situaciones de pánico y emergencia</li>
-                    <li>Temas de duelo y pérdida</li>
-                </ul>
-
-                <div class="advertencia-acciones">
-                    <button type="button" class="advertencia-accion advertencia-accion--volver" data-volver>
-                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 5 L5 12 L12 19 M20 5 L13 12 L20 19" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                        Volver
-                    </button>
-                    <a class="advertencia-accion advertencia-accion--seguir" href="narrativa.html">
-                        Seguir
-                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 5 L19 12 L12 19 M4 5 L11 12 L4 19" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    </a>
-                </div>
-            </div>
-        </dialog>
-
-        <script type="module" src="./advertencia.js"></script>
+        <script type="module" src="./script.js"></script>
     </body>
 </html>
