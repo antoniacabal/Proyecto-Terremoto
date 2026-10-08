@@ -46,7 +46,7 @@ const box = (w, h, d, x, y, z, calm, tense, parent = cur) => { const m = new THR
 
 // 3. Colisiones: por espacio. Cada rectángulo es [x0, x1, z0, z1]
 const EXT = [W.uniX - 3, W.uniX + 3, W.uniGateZ, W.uniGateZ] // tramo extra de la calle eterna (crece con la ansiedad)
-const STREET_X0 = -7.5 // la calle 1 empieza un poco antes de la casa de Gabriela
+export const STREET_X0 = -30 // la calle 1 sigue hacia la izquierda de la casa de Gabriela hasta una valla de obra
 export const HOME_DOOR = { x: -3.5, z: -8 } // casa de Gabriela en la fila de casas de la calle 1 (su puerta mira a la calle)
 const PATH = [HOME_DOOR.x - 0.7, HOME_DOOR.x + 0.7, HOME_DOOR.z + 1.6, -3]  // caminito de la puerta al andén
 const RECTS = {
@@ -218,9 +218,9 @@ solid(0.7, 0.7, HX - 2, -2.2)                                      // mamá (el 
 // 9. Calle: isla flotante con campo. La calle pasa frente a la casa de Gabriela hacia la derecha y luego gira hacia la universidad
 into('STREET')
 const UX = W.uniX, GATE = W.uniGateZ
-const field = box(84, 0.5, 100, 30, -0.4, -38, '#799180', '#482642')     // campo (superficie y = -0.15)
-box(82.6, 0.9, 98.8, 30, -1.1, -38, '#A16A49', '#201826')               // base de tierra flotante
-box(46.1 - STREET_X0, 0.1, 6, (46.1 + STREET_X0) / 2, -0.05, 0, '#D8C8AE', '#71708A') // calle 1: pasa frente a la casa y sigue hacia la derecha
+const field = box(116, 0.5, 116, 16, -0.4, -36, '#799180', '#482642')    // campo (superficie y = -0.15): llega más allá de la valla para que no se vea el vacío
+box(114.6, 0.9, 114.8, 16, -1.1, -36, '#A16A49', '#201826')             // base de tierra flotante
+box(46.1 + 42, 0.1, 6, (46.1 - 42) / 2, -0.05, 0, '#D8C8AE', '#71708A')  // calle 1: sigue detrás de la valla hasta el borde y pasa frente a la casa hacia la derecha
 box(6, 0.1, 41, UX, -0.045, (GATE + 3) / 2, '#D8C8AE', '#71708A')        // calle 2: gira hacia la universidad
 const roadExt = box(6, 0.1, 1, UX, -0.045, GATE, '#D8C8AE', '#71708A'); roadExt.visible = false // tramo de la calle eterna
 box(PATH[1] - PATH[0], 0.06, PATH[3] - PATH[2], HOME_DOOR.x, -0.07, (PATH[2] + PATH[3]) / 2, '#D8C8AE', '#71708A') // caminito de la casa de Gabriela
@@ -230,16 +230,29 @@ for (let x = STREET_X0 + 0.4; x < 46; x += 1.3) { if (x < 39.5 && (x < PATH[0] -
 for (let z = -3.6; z > GATE; z -= 1.3) curbs.push([UX - 3.15, 0.05, z, 1, 1, 1, Math.PI / 2])
 for (let z = 2.5; z > GATE; z -= 1.3) curbs.push([UX + 3.15, 0.05, z, 1, 1, 1, Math.PI / 2])
 scatter(new THREE.BoxGeometry(0.8, 0.16, 0.34), '#A16A49', '#201826', curbs) // andenes
-scatter(new THREE.BoxGeometry(0.8, 0.02, 0.5), '#BF895A', '#580213', Array.from({ length: 60 }, () => [rr(1, 45), 0.01, rr(-2.6, 2.6), 1, 1, 1, rr(-.2, .2)])
+scatter(new THREE.BoxGeometry(0.8, 0.02, 0.5), '#BF895A', '#580213', Array.from({ length: 90 }, () => [rr(STREET_X0 + 1, 45), 0.01, rr(-2.6, 2.6), 1, 1, 1, rr(-.2, .2)])
     .concat(Array.from({ length: 50 }, () => [rr(UX - 2.6, UX + 2.6), 0.01, rr(GATE + 0.5, -3), 1, 1, 1, Math.PI / 2 + rr(-.2, .2)]))) // manchas del camino
 
-const DECOR = [[0.5, 39.5, -6.2, -3.6], [0.5, 46, 3.6, 9], [36.9, 39.6, GATE + 1, -4], [46.6, 49.2, GATE + 1, 2.5], [-6, -1, 4, 9]] // zonas de pasto para la vegetación
+// Valla de obra donde se cierra la calle 1 (después del sismo): dos burros con franjas y una señal
+{
+    const VX = STREET_X0 - 0.3
+    ;[-1.5, 1.5].forEach(dz => {
+        box(0.12, 1.1, 0.12, VX, 0.45, dz - 1.2, '#A16A49', '#201826'); box(0.12, 1.1, 0.12, VX, 0.45, dz + 1.2, '#A16A49', '#201826') // patas
+        for (let k = 0; k < 5; k++) box(0.14, 0.32, 0.5, VX, 0.8, dz - 1 + k * 0.5, k % 2 ? '#E4FFFF' : '#BF4E24', k % 2 ? '#71708A' : '#580213') // tabla con franjas
+    })
+    box(0.1, 1.9, 0.1, VX - 0.6, 0.8, -2.6, '#71708A', '#201826'); box(0.08, 0.8, 0.8, VX - 0.6, 1.9, -2.6, '#F2C063', '#580213') // señal de "calle cerrada"
+}
+
+const DECOR = [[STREET_X0 + 0.5, PATH[0] - 0.3, -6.2, -3.6], [PATH[1] + 0.3, 39.5, -6.2, -3.6], [STREET_X0 + 0.5, 46, 3.6, 9], [36.9, 39.6, GATE + 1, -4], [46.6, 49.2, GATE + 1, 2.5], [-41, STREET_X0 - 1.5, -12, 12]] // zonas de pasto para la vegetación
 const pick = () => { const a = DECOR[Math.floor(rng() * DECOR.length)]; return [rr(a[0], a[1]), rr(a[2], a[3])] }
-const reeds = []; for (let k = 0; k < 90; k++) { const [x, z] = pick(); for (let j = 0; j < 3; j++) { const sy = rr(0.7, 1.4); reeds.push([x + rr(-.25, .25), -0.15 + 0.45 * sy, z + rr(-.25, .25), 1, sy, 1, 0]) } }
+const reeds = []; for (let k = 0; k < 140; k++) { const [x, z] = pick(); for (let j = 0; j < 3; j++) { const sy = rr(0.7, 1.4); reeds.push([x + rr(-.25, .25), -0.15 + 0.45 * sy, z + rr(-.25, .25), 1, sy, 1, 0]) } }
 const reedMesh = scatter(new THREE.ConeGeometry(0.12, 0.9, 5), '#D8C8AE', '#71708A', reeds)
 grassOf(field, '#799180', '#482642', '#6FA86B'); grassOf(reedMesh, '#D8C8AE', '#71708A', '#8DBE7A') // el pasto se pinta de verde en el Earthing
-scatter(new THREE.SphereGeometry(0.09, 6, 4), '#F2C063', '#790A0E', Array.from({ length: 170 }, () => { const [x, z] = pick(); return [x, -0.08, z] }))
-;[[9, -5], [16, -5.4], [30, -5.2], [37, -5.6], [38.3, -14], [38.2, -26], [38.4, -35], [-3, 6], [6, 8], [14, 8.5], [33, 8], [54, -12], [54, -24], [54, -33]].forEach(([x, z]) => tree(x + rr(-.5, .5), z))
+scatter(new THREE.SphereGeometry(0.09, 6, 4), '#F2C063', '#790A0E', Array.from({ length: 260 }, () => { const [x, z] = pick(); return [x, -0.08, z] }))
+;[[9, -5], [16, -5.4], [30, -5.2], [37, -5.6], [38.3, -14], [38.2, -26], [38.4, -35], [-3, 6], [6, 8], [14, 8.5], [33, 8], [54, -12], [54, -24], [54, -33],
+  [-9, -5.4], [-21, -5.6], [-27.5, -5.2], [-8, 8], [-15, 7.4], [-22, 8.6], [-28, 7.2],                       // calle 1 hacia la izquierda
+  [-34, -4], [-37, 3], [-35, 9], [-39, -9], [-33, -13], [-38, 15], [-29, 14], [-18, 15], [-6, 14], [8, 15], [24, 14], // detrás de la valla y al fondo del campo
+  [-14, -15], [-27, -14], [-21, -19], [-7, -16], [62, -5], [64, -20], [61, -40], [24, -50], [10, -36], [-10, -30]].forEach(([x, z]) => tree(x + rr(-.5, .5), z))
 
 // Casas y edificios: cada uno es un grupo con su base en el origen y la puerta en su +z local (rotY la gira hacia la calle)
 const HP = [['#D8C8AE', '#71708A'], ['#A6869B', '#482642'], ['#BF895A', '#580213']]
@@ -256,6 +269,8 @@ const building = (x, z, h, k, ry = 0) => { const [c, t] = HP[k % 3], g = new THR
     cur.add(g); warpable(g, x * 1.7 + z) }
 house(HOME_DOOR.x, HOME_DOOR.z, 4.2, 1, 0, 6)                                                                    // casa de Gabriela: la primera de la fila (tamaño fijo: no cambia el resto del mapa)
 ;[5, 12, 19, 26, 33].forEach((x, i) => i % 2 ? building(x, -8, rr(8, 11), i) : house(x, -8, rr(3.6, 5), i)) // fila de casas sobre la calle 1 (como en el plano)
+;[-10.5, -17.5, -24.5].forEach((x, i) => i % 2 ? house(x, -8, rr(3.6, 5), i + 2) : building(x, -8, rr(8, 11), i + 2)) // la fila sigue a la izquierda de la casa de Gabriela
+house(-34, -8, rr(3.6, 5), 0); building(-36, -17, rr(8, 11), 2)                                                  // detrás de la valla: la ciudad continúa
 building(35, -19, rr(8, 11), 1, Math.PI / 2); house(35, -30, rr(3.6, 5), 2, Math.PI / 2)                       // lado izquierdo de la calle 2
 ;[-7, -17, -27, -35].forEach((z, i) => house(51.2, z, rr(2.4, 3.2), i, -Math.PI / 2))                           // lado derecho de la calle 2 (bajas para no tapar la calle)
 
@@ -272,9 +287,9 @@ box(6, 0.3, 1.4, 0, 0.15, 4.75, '#D8C8AE', '#71708A', uniG)
 box(0.3, 1.2, 9, -8.5, 0.6, 0, '#A16A49', '#201826', uniG); box(0.3, 1.2, 9, 8.5, 0.6, 0, '#A16A49', '#201826', uniG) // muros del campus
 scatter(new THREE.BoxGeometry(0.9, 1, 0.1), '#8296B7', '#201826', [-6, -1.8, 1.8, 6].flatMap(x => [[x, 4.3, 4.05], [x, 6.3, 4.05]]).filter(([x, y]) => Math.abs(x) > 2.1 || y > 5), uniG)
 
-makeLayer('MID', row(4, 4, 8, (x, i) => [x, -15, 6, 7 + (i * 3) % 5, 4]).concat(row(4, -22, -7, (z, i) => [27, z, 4, 7 + (i * 2) % 4, 6])))
-makeLayer('INFRA', [[4, -3.5], [12, -3.5], [28, -3.5], [36, -3.5], [UX - 3.4, -10], [UX - 3.4, -18], [UX - 3.4, -26], [UX - 3.4, -34]].map(([x, z]) => [x, z, 0.3, 3.5, 0.3]))
-makeLayer('FRONT', row(6, 6, 7, (x, i) => [x, 6.8, 1.2 + (i % 2) * 0.6, 0.8 + (i % 3) * 0.3, 1]))
+makeLayer('MID', row(4, 4, 8, (x, i) => [x, -15, 6, 7 + (i * 3) % 5, 4]).concat(row(4, -22, -7, (z, i) => [27, z, 4, 7 + (i * 2) % 4, 6]), row(3, -30, 9, (x, i) => [x, -24, 6, 6 + (i * 3) % 5, 4])))
+makeLayer('INFRA', [[-26, -3.5], [-14, -3.5], [4, -3.5], [12, -3.5], [28, -3.5], [36, -3.5], [UX - 3.4, -10], [UX - 3.4, -18], [UX - 3.4, -26], [UX - 3.4, -34]].map(([x, z]) => [x, z, 0.3, 3.5, 0.3]))
+makeLayer('FRONT', row(10, -27, 7, (x, i) => [x, 6.8, 1.2 + (i % 2) * 0.6, 0.8 + (i % 3) * 0.3, 1]))
 
 // 10. Interior del MIO: otro espacio flotando en el vacío (entras y sales por la puerta)
 into('BUS')
@@ -292,8 +307,14 @@ box(0.4, 0.25, 4.6, BX - 6.2, 2.5, 0, '#A16A49', '#201826')    // viga superior 
 box(0.4, 2.7, 0.4, BX + 6.2, 1.3, -2.2, '#BF895A', '#580213')  // poste esquina
 box(0.4, 2.7, 0.4, BX - 6.2, 1.3, -2.2, '#BF895A', '#580213')  // poste de la puerta
 ;[-4.6, 4.6].forEach(dx => { box(0.25, 2.5, 0.25, BX + dx - 0.8, 1.25, 2.2, '#BF895A', '#580213'); box(0.25, 2.5, 0.25, BX + dx + 0.8, 1.25, 2.2, '#BF895A', '#580213'); box(1.85, 0.25, 0.25, BX + dx, 2.55, 2.2, '#A16A49', '#201826') }) // puertas laterales
-furn(0.5, 1.0, 3.6, BX + 5.8, 0.5, 0, '#A16A49', '#580213')    // tablero de la cabina
-box(0.12, 0.55, 0.55, BX + 5.45, 1.3, 0, '#201826', '#201826')  // volante
+solid(0.5, 3.6, BX + 5.8, 0)                                   // cabina: no se puede pasar al puesto del conductor
+{ // volante: aro inclinado hacia el conductor, tres rayos y la columna que baja al piso
+    const wheel = new THREE.Group(), rim = mat('#D8C8AE', '#71708A'); wheel.position.set(BX + 5.55, 1.0, 0); wheel.rotation.set(0, Math.PI / 2, 0); cur.add(wheel) // claro: se distingue sobre la silueta negra del conductor
+    const tilt = new THREE.Group(); tilt.rotation.x = -0.5; wheel.add(tilt) // inclinado como en los buses
+    tilt.add(new THREE.Mesh(new THREE.TorusGeometry(0.32, 0.045, 8, 24), rim))
+    ;[0, 2.1, 4.2].forEach(a => { const s = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.32, 0.04), rim); s.position.set(Math.sin(a) * 0.16, Math.cos(a) * 0.16, 0); s.rotation.z = -a; tilt.add(s) })
+    const col = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.07, 1.0, 8), mat('#A16A49', '#201826')); col.position.set(BX + 5.77, 0.5, 0); col.rotation.z = 0.35; cur.add(col)
+}
 ;[-3.6, -1.2, 1.2, 3.6].forEach((dx, i) => {                     // bancas: fila del fondo y fila de adelante
     const c = i % 2 ? ['#A6869B', '#482642'] : ['#799180', '#580213']
     furn(2, 0.45, 0.7, BX + dx, 0.225, -1.55, ...c); box(2, 0.7, 0.12, BX + dx, 0.8, -1.95, ...c); SEATS.push({ x: BX + dx, z: -1.55, face: 0, taken: false })

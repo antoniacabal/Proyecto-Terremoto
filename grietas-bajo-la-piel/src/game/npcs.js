@@ -7,7 +7,7 @@
 
 // 0. Imports
 import * as THREE from 'three'
-import { spaces, walkableIn, SEATS } from './environment.js'
+import { spaces, walkableIn, SEATS, STREET_X0 } from './environment.js'
 import { CONFIG, runtime } from './config.js'
 import { player } from './player.js'
 
@@ -27,7 +27,7 @@ const npcs = [], R = 0.85 // R = distancia mínima entre centros
 const add = (o) => { o.g.userData.n = o; o.parent.add(o.g); npcs.push({ vx: 0, vz: 0, cool: 0, t: 0, state: 'walk', ...o }) }
 const UX = CONFIG.world.uniX
 const ROUTES = [ // axis = eje por el que caminan · lanes = carriles · min/max = tramo que recorren
-    { axis: 'x', lanes: [-2.3, -1.2, 1.2, 2.3], min: 3, max: 38.5 },               // calle 1
+    { axis: 'x', lanes: [-2.3, -1.2, 1.2, 2.3], min: STREET_X0 + 2, max: 38.5 },   // calle 1 (desde la valla)
     { axis: 'z', lanes: [UX - 2.1, UX - 1.1, UX + 1.1, UX + 2.1], min: -35, max: -4 } // calle 2 (hacia la universidad)
 ]
 const BUS_X = CONFIG.world.busX

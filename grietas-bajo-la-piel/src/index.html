@@ -80,7 +80,25 @@
                     <button type="button" class="boton" id="boton-iniciar" aria-haspopup="dialog">Iniciar</button>
                 </div>
                 <div class="escena-canvas">
-                    <canvas class="webgl" aria-label="Muestra del juego"></canvas>
+                    <canvas class="webgl" aria-label="Muestra del juego: arrastra para girarla y usa la rueda del mouse o pellizca para acercarla"></canvas>
+
+                    <!-- Pistas de los controles (script.js las muestra después de un rato y las retira cuando se usan) -->
+                    <div class="muestra-pistas" aria-hidden="true">
+                        <svg class="muestra-pista muestra-pista--giro muestra-pista--izquierda" viewBox="0 0 80 120">
+                            <path d="M62 10 C 18 30, 14 88, 58 108" />
+                            <path d="M40 98 L 58 108 L 48 88" />
+                        </svg>
+                        <svg class="muestra-pista muestra-pista--giro muestra-pista--derecha" viewBox="0 0 80 120">
+                            <path d="M18 10 C 62 30, 66 88, 22 108" />
+                            <path d="M40 98 L 22 108 L 32 88" />
+                        </svg>
+                        <p class="muestra-pista muestra-pista--giro muestra-pista-texto muestra-pista-texto--giro">Arrastra para girar</p>
+                        <p class="muestra-pista muestra-pista--zoom muestra-pista-texto muestra-pista-texto--zoom">
+                            <svg viewBox="0 0 24 24"><circle cx="10" cy="10" r="6.5" /><path d="M15 15 L 21 21 M10 7 V 13 M7 10 H 13" /></svg>
+                            <span class="muestra-zoom-mouse">Rueda del mouse para acercar</span>
+                            <span class="muestra-zoom-tactil">Pellizca para acercar</span>
+                        </p>
+                    </div>
                 </div>
             </section>
 
