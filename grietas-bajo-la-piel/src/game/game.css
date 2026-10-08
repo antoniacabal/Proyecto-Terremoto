@@ -64,6 +64,11 @@
 .gx-list{width:100%;list-style:none;padding:0}
 .gx-list li{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;font-size:.95rem;line-height:1.35}
 .gx-list li::before{content:"";flex:none;width:8px;height:8px;margin-top:.4em;border-radius:2px;background:var(--color-advertencia,#D01F2A)}
+/* Enlace a la página de la técnica (se abre en otra pestaña para no perder la partida) */
+.gx-more{font-family:'Outfit',sans-serif;font-size:.95rem;color:var(--color-principal,#F2C063);text-underline-offset:4px}
+.gx-more:hover{color:var(--color-soporte-claro,#e4ffff)}
+.gx-more:focus-visible{outline:3px solid var(--color-acento,#BF4E24);outline-offset:4px;border-radius:4px}
+.gx-more[hidden]{display:none}
 .gx-actions{display:flex;justify-content:space-between;align-items:center;width:100%;margin-top:16px}
 .gx-choice .gx-actions,.gx-ending .gx-actions{gap:1rem;flex-wrap:wrap;justify-content:center}
 .gx-tutorial .gx-actions,.gx-controls .gx-actions{justify-content:center}

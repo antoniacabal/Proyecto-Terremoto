@@ -51,7 +51,6 @@ export function initDebug(actions) {
     add(mini, Object.fromEntries(TECHS.map(t => [`▶ ${t.name}`, () => actions.playGame(t.id)])))
     add(mini, { 'Ver los tutoriales otra vez': () => actions.resetTutorials() })
     mini.add(CONFIG.breathing, 'tol', .05, .5, .01).name('caja/cuerpo: tolerancia'); mini.add(CONFIG.breathing, 'pass', .3, 1, .01).name('caja/cuerpo: % para pasar'); mini.add(CONFIG.breathing, 'rate', .1, 1, .01).name('caja/cuerpo: vel. en retención')
-    mini.add(CONFIG.senses, 'time', 5, 60, 1).name('5-4-3-2-1: tiempo por paso (s)')
     mini.add(CONFIG.earth, 'need', 2, 20, 1).name('earthing: s sobre el pasto'); mini.add(CONFIG.earth, 'timeout', 10, 90, 1).name('earthing: tiempo límite (s)'); mini.add(CONFIG.earth, 'relief', 0, .3, .01).name('earthing: alivio por s')
 
     // 5. Ajustes de crisis: solo se notan con la narrativa automática activada
