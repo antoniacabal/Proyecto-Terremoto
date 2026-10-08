@@ -107,7 +107,7 @@ export const ui = {
     say(t) { msg.textContent = t },
     showBreath(v) { $('.gx-breath').hidden = !v },
     updateBreath() {
-        const step = runtime.target < 0, f = step ? runtime.stepFill : runtime.level // 5-4-3-2-1 y Earthing: el arco muestra el avance del paso
+        const step = runtime.target < 0, f = step ? runtime.stepFill : runtime.level // Earthing: el arco muestra el tiempo sobre el pasto
         needle.style.display = step ? 'none' : ''
         if (!step) {
             needle.setAttribute('transform', `rotate(${runtime.target * 180 - 90} 150 150)`)
@@ -138,9 +138,10 @@ export const ui = {
         if (onCardNext) cardNext.focus({ preventScroll: true })
     },
     controls(onClose) { openHold($('.gx-controls'), onClose) }, // pop-up de controles del inicio
-    tutorial(info, onClose) { // pop-up "Cómo se juega". info: { sub, steps: [] }
-        const m = $('.gx-tutorial'), list = m.querySelector('.gx-list')
+    tutorial(info, onClose) { // pop-up "Cómo se juega". info: { sub, steps: [], page → enlace a la página que explica la técnica }
+        const m = $('.gx-tutorial'), list = m.querySelector('.gx-list'), more = m.querySelector('.gx-more')
         m.querySelector('.gx-sub').textContent = info.sub
+        more.hidden = !info.page; if (info.page) more.href = info.page
         list.innerHTML = ''; info.steps.forEach(s => { const el = document.createElement('li'); el.textContent = s; list.appendChild(el) })
         openHold(m, onClose)
     },

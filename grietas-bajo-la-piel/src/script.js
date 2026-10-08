@@ -3,21 +3,20 @@
     0. Imports
     1. Menu desplegable
     2. Ventana de advertencia (index.html)
-    3. Carrusel del personaje (contexto.html)
-    4. Muestra 3D del juego (index.html)
-        4.1 Canvas
-        4.2 Escena
-        4.3 Luces
-        4.4 Objetos
-        4.5 Tamaños
-        4.6 Camara
-        4.7 Controles
-        4.8 Render
-        4.9 Animacion
-    5. Color del scroll (todas las paginas)
-    6. Juego (narrativa.html)
-    7. Mapa de apoyo (index.html)
-    8. Inicio
+    3. Muestra 3D del juego (index.html)
+        3.1 Canvas
+        3.2 Escena
+        3.3 Luces
+        3.4 Objetos
+        3.5 Tamaños
+        3.6 Camara
+        3.7 Controles
+        3.8 Render
+        3.9 Animacion
+    4. Color del scroll (todas las paginas)
+    5. Juego (narrativa.html)
+    6. Mapa de apoyo (index.html)
+    7. Inicio
 
 */
 
@@ -117,61 +116,7 @@ function iniciarAdvertencia() {
     }
 }
 
-// 3. Carrusel del personaje -----------------
-    // (contexto.html)
-function iniciarCarrusel() {
-    const carrusel = document.querySelector('.carrusel');
-    if (!carrusel) return;
-
-    const pista = carrusel.querySelector('.carrusel-pista');
-    const slides = Array.from(carrusel.querySelectorAll('.carrusel-slide'));
-    const anterior = carrusel.querySelector('.carrusel-boton--anterior');
-    const siguiente = carrusel.querySelector('.carrusel-boton--siguiente');
-    const contenedorPuntos = carrusel.querySelector('.carrusel-puntos');
-
-    // Puntos de navegación -----------------
-    const puntos = slides.map((slide, i) => {
-        const punto = document.createElement('button');
-        punto.type = 'button';
-        punto.className = 'carrusel-punto';
-        punto.setAttribute('aria-label', 'Ir a la imagen ' + (i + 1));
-        punto.addEventListener('click', () => irA(i));
-        contenedorPuntos.appendChild(punto);
-        return punto;
-    });
-
-    let actual = 0;
-
-    function irA(indice) {
-        const total = slides.length;
-        const destino = ((indice % total) + total) % total;
-        pista.scrollTo({ left: slides[destino].offsetLeft, behavior: 'smooth' });
-    }
-
-    function actualizar() {
-        actual = Math.round(pista.scrollLeft / pista.clientWidth);
-        puntos.forEach((p, i) => {
-            p.setAttribute('aria-current', i === actual ? 'true' : 'false');
-            p.dataset.distancia = Math.min(2, Math.abs(i - actual));
-        });
-    }
-
-    anterior.addEventListener('click', () => irA(actual - 1));
-    siguiente.addEventListener('click', () => irA(actual + 1));
-    pista.addEventListener('scroll', actualizar, { passive: true });
-    window.addEventListener('resize', () => irA(actual));
-
-    // Flechas del teclado
-    pista.tabIndex = 0;
-    pista.addEventListener('keydown', (e) => {
-        if (e.key === 'ArrowLeft') { e.preventDefault(); irA(actual - 1); }
-        if (e.key === 'ArrowRight') { e.preventDefault(); irA(actual + 1); }
-    });
-
-    actualizar();
-}
-
-// 4. Muestra 3D del juego -----------------
+// 3. Muestra 3D del juego -----------------
     //  (index.html)
 async function iniciarMuestra() {
     const canvas = document.querySelector('.escena-canvas canvas.webgl')
@@ -180,13 +125,13 @@ async function iniciarMuestra() {
     const THREE = await import('three')
     const { OrbitControls } = await import('three/addons/controls/OrbitControls.js')
 
-    // 4.1 Canvas -----------------
+    // 3.1 Canvas -----------------
     const contenedor = canvas.parentElement
 
-    // 4.2 Escena -----------------
+    // 3.2 Escena -----------------
     const scene = new THREE.Scene()
 
-    // 4.3 Luces -----------------
+    // 3.3 Luces -----------------
     const luzAmbiente = new THREE.AmbientLight(0x8890b0, 0.9)
     scene.add(luzAmbiente)
 
@@ -199,7 +144,7 @@ async function iniciarMuestra() {
     luzTension.position.set(0, 3, 0)
     scene.add(luzTension)
 
-    // 4.4 Objetos -----------------
+    // 3.4 Objetos -----------------
         // TEMP: formas simples, reemplazar por los assets finales
         const material = (color) => new THREE.MeshStandardMaterial({ color })
 
@@ -234,13 +179,13 @@ async function iniciarMuestra() {
 
         personaje.add(cuerpo, cabeza)
 
-    // 4.5 Tamaños -----------------
+    // 3.5 Tamaños -----------------
     const sizes = {
         width: contenedor.clientWidth,
         height: contenedor.clientHeight
     }
 
-    // 4.6 Cámara -----------------
+    // 3.6 Cámara -----------------
         const radioCuarto = 3.8
         const margen = 1.2
         const anchoMinimo = radioCuarto * 2 * margen   // ancho visible necesario (~9.1)
@@ -256,7 +201,7 @@ async function iniciarMuestra() {
         camera.position.set(10, 8.2, 10)
         camera.lookAt(0, 0.6, 0)
 
-    // 4.7 Controles -----------------
+    // 3.7 Controles -----------------
     const sinMovimiento = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
     const controls = new OrbitControls(camera, canvas)
@@ -292,7 +237,7 @@ async function iniciarMuestra() {
 
     canvas.style.cursor = 'grab'
 
-    // 4.8 Render -----------------
+    // 3.8 Render -----------------
     const renderer = new THREE.WebGLRenderer({
         canvas: canvas,
         alpha: true,
@@ -322,7 +267,7 @@ async function iniciarMuestra() {
     })
     resizeObserver.observe(contenedor)
 
-    // 4.9 Animación -----------------
+    // 3.9 Animación -----------------
     const clock = new THREE.Clock()
 
     const tick = () =>
@@ -347,7 +292,7 @@ async function iniciarMuestra() {
     tick()
 }
 
-// 5. Color del scroll -----------------
+// 4. Color del scroll -----------------
 function iniciarScroll() {
     const oscuras = document.querySelectorAll('.escena, .footer')
     if (!oscuras.length) return
@@ -378,7 +323,7 @@ function iniciarScroll() {
     revisar()
 }
 
-// 6. Juego -----------------
+// 5. Juego -----------------
     // (narrativa.html)
 async function iniciarJuego() {
     if (!document.querySelector('canvas.webgl--narrativa')) return
@@ -387,7 +332,7 @@ async function iniciarJuego() {
     await import('./game/main.js')
 }
 
-// 7. Mapa de apoyo -----------------
+// 6. Mapa de apoyo -----------------
     // (index.html) Google Maps con marcadores, filtros y tarjetas propias: ver src/mapa/
 async function iniciarMapa() {
     if (!document.getElementById('mapa-apoyo')) return
@@ -396,11 +341,10 @@ async function iniciarMapa() {
     iniciarMapaApoyo()
 }
 
-// 8. Inicio -----------------
+// 7. Inicio -----------------
 iniciarMenu()
 iniciarMapa()
 iniciarAdvertencia()
-iniciarCarrusel()
 iniciarScroll()
 iniciarMuestra()
 iniciarJuego()

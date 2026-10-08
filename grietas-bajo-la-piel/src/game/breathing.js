@@ -9,14 +9,13 @@
 import { CONFIG, runtime } from './config.js'
 import { GAMES } from './minigames.js'
 
-// 1. Técnicas de autorregulación
+// 1. Técnicas de autorregulación (page = sección de respiracion-consciente.html que la explica)
 const S = (l, d, f, t) => ({ l, d, f, t })
 const HOLD = 'Inhala manteniendo el clic (o la barra espaciadora), retén sin soltar y exhala al soltar. Sigue la aguja roja.'
 export const TECHS = [
-    { id: 'box', name: 'Respiración en caja', help: HOLD + ' (4 s · 4 s · 4 s · 4 s)', segs: [S('Inhala', 4, 0, 1), S('Retén', 4, 1, 1), S('Exhala', 4, 1, 0), S('Pausa', 4, 0, 0)] },
-    { id: 'senses', name: 'Técnica 5-4-3-2-1', help: 'Algunos objetos brillan suave a tu alrededor: pasa el mouse por encima y haz clic en ellos.', game: 'senses' },
-    { id: 'body', name: 'Escaneo corporal y descarga', help: HOLD, segs: [S('Inhala profundo', 4, 0, 1), S('Retén', 2, 1, 1), S('Exhala: la tensión baja por el torso', 4, 1, 0.5), S('...por las piernas, hacia el suelo', 4, 0.5, 0)] },
-    { id: 'earth', name: 'Earthing físico', help: 'Camina (WASD o flechas) hasta el pasto, a un lado del camino, y quédate sobre él respirando lento. Solo ahí baja tu ansiedad.', game: 'earth' }
+    { id: 'box', name: 'Respiración en caja', page: 'respiracion-consciente.html#respira', help: HOLD + ' (4 s · 4 s · 4 s · 4 s)', segs: [S('Inhala', 4, 0, 1), S('Retén', 4, 1, 1), S('Exhala', 4, 1, 0), S('Pausa', 4, 0, 0)] },
+    { id: 'body', name: 'Escaneo corporal y descarga', page: 'respiracion-consciente.html#respira', help: HOLD, segs: [S('Inhala profundo', 4, 0, 1), S('Retén', 2, 1, 1), S('Exhala: la tensión baja por el torso', 4, 1, 0.5), S('...por las piernas, hacia el suelo', 4, 0.5, 0)] },
+    { id: 'earth', name: 'Earthing físico', page: 'respiracion-consciente.html#anclaje', help: 'Camina (WASD o flechas) hasta el pasto, a un lado del camino, y quédate sobre él respirando lento. Solo ahí baja tu ansiedad.', game: 'earth' }
 ]
 const actionOf = (seg) => seg.t > seg.f || (seg.t === seg.f && seg.t > 0.5) ? 'hold' : 'release' // qué debe hacer el jugador en cada tramo
 

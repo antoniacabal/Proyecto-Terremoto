@@ -20,7 +20,7 @@ import { CONFIG, runtime } from './config.js'
 import { sm } from './stateMachine.js'
 import { renderer, scene, canvas } from './scene.js'
 import { camera, updateCamera } from './camera.js'
-import { updateEnvironment, props, resetProps, marker, setSpace, setHighlight, SEATS, atUniversity, nearUniversity, endless } from './environment.js'
+import { updateEnvironment, props, resetProps, marker, setSpace, setHighlight, SEATS, atUniversity, nearUniversity, endless, HOME_DOOR } from './environment.js'
 import { player } from './player.js'
 import { breathing } from './breathing.js'
 import { updateAnxiety } from './anxiety.js'
@@ -80,7 +80,7 @@ function transition(fn) {
     busy = true; player.setMode('stop')
     ui.fade(1, 0.5, () => { fn(); ui.fade(0, 0.6, () => { busy = false; if (runtime.state === 'EXPLORATION') player.setMode('free') }) })
 }
-const exitHouse = () => transition(() => { out = true; goStreet(1.2, 0) })                // aparece la calle (con la casa detrás)
+const exitHouse = () => transition(() => { out = true; goStreet(HOME_DOOR.x, HOME_DOOR.z + 2) }) // apareces en el caminito, frente a la puerta de la casa
 const goDown = () => transition(() => { down = true; goTo('HOME', HX + 0.4, -0.3, HX) })  // bajas las escaleras: cocina, comedor y sala
 function getUp() { if (runtime.postQuake) runtime.nextCrisis = C.first; setHighlight(true); player.standUp(props.cama.pos.x, props.cama.pos.z); up = true; showTask() }
 
@@ -103,16 +103,10 @@ const MOM_LINES = {
     post: {
         hello: ['Buenos días, hija... ¿Pudiste dormir algo anoche?', [ME, 'Casi nada...'], 'Te dejé el desayuno listo en la isla. Come aunque sea un poquito, ¿sí?'],
         bye: [ // después del sismo mamá intenta que te sientas mejor y que quieras salir
-            'Comiste un poquito. Eso ya es bastante, mi amor.',
             [ME, 'No quiero salir, mamá. ¿Y si vuelve a temblar?'],
-            'Lo sé. Desde el temblor todo se siente distinto. A mí también me cuesta, ¿sabes?',
-            'Lo que sientes no está mal ni te hace débil. Tu cuerpo se asustó y todavía se está acomodando.',
-            'Pero mira a tu alrededor: la casa está bien, yo estoy bien y tú estás aquí, conmigo.',
-            'Si se te acelera el pecho, respira despacito: inhala contando hasta cuatro... y suelta igual de lento.',
-            'Fíjate en lo que ves, en lo que tocas, en tus pies sobre el piso. Eso te trae de vuelta.',
-            'Hoy no tienes que hacerlo perfecto. Un paso a la vez: primero hasta la puerta, después hasta la esquina.',
+            'Lo sé, mi amor. A mí también me cuesta. Si se te acelera el pecho, respira despacito.',
             [ME, '...Bueno. Lo voy a intentar.'],
-            'Esa es mi niña. Estoy muy orgullosa de ti. Y si se pone difícil, me llamas y voy por ti.'
+            'Y si se pone difícil, me llamas y voy por ti.'
         ]
     }
 }
@@ -195,7 +189,6 @@ addEventListener('keydown', (e) => e.code === 'KeyE' && !e.repeat && interact())
 const seenTutorials = new Set()
 const TUTORIALS = {
     hold: ['Inhala: mantén el clic (o la barra espaciadora) y tu barra verde se llena. En pantalla táctil, mantén el botón E.', 'Retén: sigue manteniendo el clic; la barra se queda llena.', 'Exhala: suelta el clic y la barra se vacía al ritmo de la aguja.', 'Mantén tu barra dentro de la franja gris clara la mayor parte del tiempo y la crisis pasa.'],
-    senses: ['Algunos objetos brillan suave a tu alrededor.', 'Pasa el mouse por encima de uno: se agranda y brilla más. Haz clic para elegirlo.', 'Elige tantos como pida el texto: 5 cosas que ves, 4 que tocas, 3 que oyes, 2 que hueles y 1 que saboreas.', 'Hazlo antes de que se acabe el tiempo de cada paso.'],
     earth: ['Camina con WASD o las flechas hasta el pasto que hay a los lados de la calle. La flecha dorada te indica hacia dónde.', 'Quédate sobre el pasto respirando lento.', 'Solo ahí baja tu ansiedad: si sales, deja de bajar.']
 }
 
@@ -239,10 +232,9 @@ sm.on('BREATHING', () => {
     player.setMode('guided')
     const tech = breathing.prepare(), mech = tech.game || 'hold' // box y body se juegan igual (mantener y soltar)
     ui.say(`Autorregulación: ${tech.name}`)
-    if (tech.game === 'senses') setHighlight(false) // se apagan los objetos de la casa: ahora brillan los del minijuego
     const begin = () => { breathing.start(); ui.showBreath(true); if (tech.game === 'earth') player.setMode('free') }
     if (seenTutorials.has(mech)) return begin()
-    seenTutorials.add(mech); ui.tutorial({ sub: tech.name, steps: TUTORIALS[mech] }, begin) // primera vez: explica cómo se juega y espera
+    seenTutorials.add(mech); ui.tutorial({ sub: tech.name, steps: TUTORIALS[mech], page: tech.page }, begin) // primera vez: explica cómo se juega y espera
 })
 sm.on('CALM', () => { // transitorio: la crisis pasó y la rutina continúa
     player.setMode('calm'); ui.say('Estás aquí. Ahora.')
@@ -295,7 +287,7 @@ function jumpTo(map) {
     skipRoom(); setHighlight(true); player.standUp(0, 0)
     if (map.startsWith('HOME')) { down = true; return goTo('HOME', HX + 0.4, -0.3, HX) }
     down = momDone = ate = out = true; props.desayuno.mesh.visible = false
-    if (map.startsWith('STREET')) goStreet(1.2, 0)
+    if (map.startsWith('STREET')) goStreet(HOME_DOOR.x, HOME_DOOR.z + 2)
     else if (map === 'UNIVERSIDAD') { busAsked = true; goStreet(W.uniX, W.uniGateZ + 12) }
     else { // dentro del MIO (y el terremoto, que en la historia pasa durante el viaje)
         runtime.rideLeft = post ? B.time : B.calmRide; runtime.nextCrisis = rand(3, 5)

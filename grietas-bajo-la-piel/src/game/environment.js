@@ -7,14 +7,13 @@
     // 5. Deformación de la ciudad y pasto
     // 6. Capas de la ciudad
     // 7. Cuarto (segundo piso)
-    // 8. Casa por fuera
-    // 9. Planta baja: cocina, escaleras, comedor y sala
-    // 10. Calle (en L: sale de la casa y gira hacia la universidad)
-    // 11. Interior del MIO
-    // 12. Objetos interactivos
-    // 13. Fondo y tema de color
-    // 14. Calle eterna
-    // 15. Actualización por cuadro
+    // 8. Planta baja: cocina, escaleras, comedor y sala
+    // 9. Calle (en L: sale de la casa y gira hacia la universidad)
+    // 10. Interior del MIO
+    // 11. Objetos interactivos
+    // 12. Fondo y tema de color
+    // 13. Calle eterna
+    // 14. Actualización por cuadro
 
 // 0. Imports
 import * as THREE from 'three'
@@ -33,32 +32,36 @@ const mat = (calm, tense, o = {}) => {
 const root = new THREE.Group(); scene.add(root)
 
 // 2. Espacios: el cuarto, la planta baja, la calle y el interior del MIO son espacios independientes (setSpace muestra el actual)
-const GROUPS = { HOUSE: new THREE.Group(), SHELL: new THREE.Group(), HOME: new THREE.Group(), STREET: new THREE.Group(), BUS: new THREE.Group() }
+const GROUPS = { HOUSE: new THREE.Group(), HOME: new THREE.Group(), STREET: new THREE.Group(), BUS: new THREE.Group() }
 root.add(...Object.values(GROUPS))
 export const spaces = GROUPS
 export const SEATS = [] // asientos del MIO donde se puede sentar el personaje (los NPCs ocupan algunos)
 let curName = 'HOUSE', cur = GROUPS.HOUSE
 const into = (name) => { curName = name; cur = GROUPS[name] }
-export function setSpace(name) { // la casa también se ve desde el inicio de la calle (sales de ella)
-    runtime.space = name; Object.entries(GROUPS).forEach(([k, g]) => g.visible = k === name || (name === 'STREET' && (k === 'HOUSE' || k === 'SHELL')))
+export function setSpace(name) { // desde la calle, la casa de Gabriela es una más de la fila (se construye en la sección 9)
+    runtime.space = name; Object.entries(GROUPS).forEach(([k, g]) => g.visible = k === name)
 }
 
 const box = (w, h, d, x, y, z, calm, tense, parent = cur) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat(calm, tense)); m.position.set(x, y, z); parent.add(m); return m }
 
 // 3. Colisiones: por espacio. Cada rectángulo es [x0, x1, z0, z1]
 const EXT = [W.uniX - 3, W.uniX + 3, W.uniGateZ, W.uniGateZ] // tramo extra de la calle eterna (crece con la ansiedad)
+const STREET_X0 = -7.5 // la calle 1 empieza un poco antes de la casa de Gabriela
+export const HOME_DOOR = { x: -3.5, z: -8 } // casa de Gabriela en la fila de casas de la calle 1 (su puerta mira a la calle)
+const PATH = [HOME_DOOR.x - 0.7, HOME_DOOR.x + 0.7, HOME_DOOR.z + 1.6, -3]  // caminito de la puerta al andén
 const RECTS = {
     HOUSE: [[-8.4, -0.15, -3.05, 3.05], [-5.7, -4.3, 2.9, 3.7]],                 // cuarto + hueco de la puerta (pared invisible del frente)
     HOME: [[HX - 6.4, HX + 6.2, -3.9, 3.9], [HX + 6.0, HX + 6.9, -0.85, 0.85]],  // planta baja + puerta principal (pared invisible de la derecha)
-    STREET: [[0.2, 46, -3, 3], [W.uniX - 3, W.uniX + 3, W.uniGateZ, 3], EXT],   // calle 1 (hacia la derecha) + calle 2 (gira hacia la universidad)
+    STREET: [[STREET_X0, 46, -3, 3], [W.uniX - 3, W.uniX + 3, W.uniGateZ, 3], EXT, PATH], // calle 1 (hacia la derecha) + calle 2 (gira hacia la universidad) + caminito de la casa
     BUS: [[W.busInteriorX - 5.6, W.busInteriorX + 5.6, -1.9, 1.9]]
 }
 const PAD = 0.3, SOLIDS = []
 const solid = (w, d, x, z, active, space = curName) => SOLIDS.push({ space, x, z, hw: w / 2 + PAD, hd: d / 2 + PAD, active })
 const furn = (w, h, d, x, y, z, calm, tense, active) => { solid(w, d, x, z, active); return box(w, h, d, x, y, z, calm, tense) }
 // Pasto a los lados de la calle: solo se puede pisar durante el minijuego del Earthing
-const GRASS_STRIPS = [[0.2, 40, -6.3, -3], [0.2, 46, 3, 6.5], [36.8, 40, W.uniGateZ, -3], [46, 49.3, W.uniGateZ, 3]]
-const GRASS_TARGETS = [[0.2, 40, -6.3, -3.5], [0.2, 46, 3.5, 6.5], [36.8, 39.5, W.uniGateZ, -3.5], [46.5, 49.3, W.uniGateZ, 3]] // un poco hacia adentro del pasto (para la flecha)
+// (el caminito de la casa de Gabriela parte en dos el pasto de abajo de la calle 1)
+const GRASS_STRIPS = [[STREET_X0, PATH[0], -6.3, -3], [PATH[1], 40, -6.3, -3], [STREET_X0, 46, 3, 6.5], [36.8, 40, W.uniGateZ, -3], [46, 49.3, W.uniGateZ, 3]]
+const GRASS_TARGETS = [[STREET_X0, PATH[0] - 0.3, -6.3, -3.5], [PATH[1] + 0.3, 40, -6.3, -3.5], [STREET_X0, 46, 3.5, 6.5], [36.8, 39.5, W.uniGateZ, -3.5], [46.5, 49.3, W.uniGateZ, 3]] // un poco hacia adentro del pasto (para la flecha)
 let grassWalk = false
 const inRect = ([x0, x1, z0, z1], x, z) => x >= x0 && x <= x1 && z >= z0 && z <= z1
 export const walkableIn = (sp, x, z) => { // se puede preguntar por cualquier espacio (los NPCs lo usan)
@@ -66,14 +69,19 @@ export const walkableIn = (sp, x, z) => { // se puede preguntar por cualquier es
         !SOLIDS.some(s => s.space === sp && (!s.active || s.active()) && Math.abs(x - s.x) < s.hw && Math.abs(z - s.z) < s.hd)
 }
 export const walkable = (x, z) => walkableIn(runtime.space, x, z)
-const onRoad = (x, z) => RECTS.STREET.some(r => inRect(r, x, z))
-export const onGrass = (x, z) => runtime.space === 'STREET' && GRASS_STRIPS.some(r => inRect(r, x, z)) && !onRoad(x, z) // pisando el pasto de los lados de la calle
+// pisando el pasto de los lados de la calle (con un margen: pararse en el borde del andén ya cuenta)
+const GRASS_EDGE = 0.45
+export const onGrass = (x, z) => runtime.space === 'STREET' && GRASS_STRIPS.some(([x0, x1, z0, z1]) => inRect([x0 - GRASS_EDGE, x1 + GRASS_EDGE, z0 - GRASS_EDGE, z1 + GRASS_EDGE], x, z)) && !inRect(PATH, x, z)
 const nearestIn = (rects, x, z) => {
     let best = null, bd = Infinity
     rects.forEach(([x0, x1, z0, z1]) => { const px = Math.min(x1, Math.max(x0, x)), pz = Math.min(z1, Math.max(z0, z)), d = Math.hypot(px - x, pz - z); if (d < bd) { bd = d; best = { x: px, z: pz } } })
     return best
 }
-export const nearestGrass = (x, z) => { const p = nearestIn(GRASS_TARGETS, x, z); return [p.x, p.z] }
+const clear = (x, z, tx, tz) => { for (let i = 1; i <= 12; i++) { const k = i / 12; if (!walkable(x + (tx - x) * k, z + (tz - z) * k)) return false } return true } // camino recto sin obstáculos (p. ej. el MIO)
+export const nearestGrass = (x, z) => { // el pasto más cercano al que se puede llegar en línea recta; si ninguno, el más cercano
+    const opts = GRASS_TARGETS.map(r => nearestIn([r], x, z)).sort((a, b) => Math.hypot(a.x - x, a.z - z) - Math.hypot(b.x - x, b.z - z))
+    const p = opts.find(o => clear(x, z, o.x, o.z)) || opts[0]; return [p.x, p.z]
+}
 export const pullBack = (x, z) => {
     const sp = runtime.space, rects = RECTS[sp].concat(grassWalk && sp === 'STREET' ? GRASS_STRIPS : [])
     if (rects.some(r => inRect(r, x, z))) return null
@@ -156,15 +164,7 @@ box(0.06, 0.3, 0.06, -7.47, 1.2, 1.95, '#F2C063', '#201826'); box(0.06, 0.3, 0.0
 const phone = outlined(box(0.3, 0.06, 0.5, -7.9, 0.83, -1.2, '#A6869B', '#E4FFFF'), 0.3, 0.06, 0.5)   // celular sobre el escritorio
 const bag = outlined(box(0.7, 0.9, 0.4, -3.6, 0.45, -2.95, '#799180', '#8296B7'), 0.7, 0.9, 0.4)     // maleta contra la pared
 
-// 8. Casa por fuera: pared frontal, pared de la puerta y techo (no existen cuando estás adentro)
-into('SHELL')
-box(0.2, 2.8, 2.3, 0.1, 1.4, -2.15, '#D8C8AE', '#71708A'); box(0.2, 2.8, 2.3, 0.1, 1.4, 2.15, '#D8C8AE', '#71708A') // pared de la puerta (deja el hueco)
-box(8.8, 2.8, 0.2, -4.2, 1.4, 3.3, '#D8C8AE', '#71708A')       // pared frontal
-box(9.6, 0.3, 7.4, -4.2, 3.1, 0, '#A16A49', '#201826')         // techo
-box(9.6, 0.7, 3.4, -4.2, 3.55, 0, '#BF895A', '#580213')        // cumbrera
-box(0.3, 2.4, 0.3, 0.15, 1.2, -1, '#A16A49', '#201826'); box(0.3, 2.4, 0.3, 0.15, 1.2, 1, '#A16A49', '#201826'); box(0.3, 0.3, 2.3, 0.15, 2.55, 0, '#A16A49', '#201826') // puerta principal vista desde la calle
-
-// 9. Planta baja, según el plano: cocina arriba a la izquierda, escaleras en el medio, comedor abajo a la izquierda,
+// 8. Planta baja, según el plano: cocina arriba a la izquierda, escaleras en el medio, comedor abajo a la izquierda,
 //    sala con sofá a la derecha y la puerta principal en la pared invisible de la derecha (sale a la calle)
 into('HOME')
 box(13.2, 0.3, 8.4, HX, -0.15, 0, '#BF895A', '#71708A')        // piso
@@ -215,17 +215,18 @@ box(0.3, 2.4, 0.3, HX + 6.6, 1.2, -1.1, '#A16A49', '#201826'); box(0.3, 2.4, 0.3
 box(1, 0.03, 1.6, HX + 5.9, 0.02, 0, '#A16A49', '#201826')      // tapete de la entrada
 solid(0.7, 0.7, HX - 2, -2.2)                                      // mamá (el modelo vive en npcs.js)
 
-// 10. Calle: isla flotante con campo. La calle sale de la casa hacia la derecha y luego gira hacia la universidad
+// 9. Calle: isla flotante con campo. La calle pasa frente a la casa de Gabriela hacia la derecha y luego gira hacia la universidad
 into('STREET')
 const UX = W.uniX, GATE = W.uniGateZ
 const field = box(84, 0.5, 100, 30, -0.4, -38, '#799180', '#482642')     // campo (superficie y = -0.15)
 box(82.6, 0.9, 98.8, 30, -1.1, -38, '#A16A49', '#201826')               // base de tierra flotante
-box(46, 0.1, 6, 23.1, -0.05, 0, '#D8C8AE', '#71708A')                    // calle 1: desde la casa hacia la derecha
+box(46.1 - STREET_X0, 0.1, 6, (46.1 + STREET_X0) / 2, -0.05, 0, '#D8C8AE', '#71708A') // calle 1: pasa frente a la casa y sigue hacia la derecha
 box(6, 0.1, 41, UX, -0.045, (GATE + 3) / 2, '#D8C8AE', '#71708A')        // calle 2: gira hacia la universidad
 const roadExt = box(6, 0.1, 1, UX, -0.045, GATE, '#D8C8AE', '#71708A'); roadExt.visible = false // tramo de la calle eterna
+box(PATH[1] - PATH[0], 0.06, PATH[3] - PATH[2], HOME_DOOR.x, -0.07, (PATH[2] + PATH[3]) / 2, '#D8C8AE', '#71708A') // caminito de la casa de Gabriela
 
 const curbs = []
-for (let x = 0.9; x < 46; x += 1.3) { if (x < 39.5) curbs.push([x, 0.05, -3.15]); curbs.push([x, 0.05, 3.15]) }
+for (let x = STREET_X0 + 0.4; x < 46; x += 1.3) { if (x < 39.5 && (x < PATH[0] - 0.4 || x > PATH[1] + 0.4)) curbs.push([x, 0.05, -3.15]); curbs.push([x, 0.05, 3.15]) } // el andén se abre frente al caminito
 for (let z = -3.6; z > GATE; z -= 1.3) curbs.push([UX - 3.15, 0.05, z, 1, 1, 1, Math.PI / 2])
 for (let z = 2.5; z > GATE; z -= 1.3) curbs.push([UX + 3.15, 0.05, z, 1, 1, 1, Math.PI / 2])
 scatter(new THREE.BoxGeometry(0.8, 0.16, 0.34), '#A16A49', '#201826', curbs) // andenes
@@ -242,7 +243,7 @@ scatter(new THREE.SphereGeometry(0.09, 6, 4), '#F2C063', '#790A0E', Array.from({
 
 // Casas y edificios: cada uno es un grupo con su base en el origen y la puerta en su +z local (rotY la gira hacia la calle)
 const HP = [['#D8C8AE', '#71708A'], ['#A6869B', '#482642'], ['#BF895A', '#580213']]
-const house = (x, z, h, k, ry = 0) => { const [c, t] = HP[k % 3], w = rr(5.5, 7), g = new THREE.Group()
+const house = (x, z, h, k, ry = 0, w = rr(5.5, 7)) => { const [c, t] = HP[k % 3], g = new THREE.Group()
     g.position.set(x, -0.15, z); g.rotation.y = ry
     box(w, h, 3, 0, h / 2, 0, c, t, g); box(w + 0.7, 0.3, 3.7, 0, h + 0.15, 0, '#A16A49', '#201826', g); box(w * 0.5, 0.5, 2.2, 0, h + 0.5, 0, '#BF895A', '#580213', g)
     box(1.1, 2, 0.12, 0, 1.0, 1.55, '#A16A49', '#201826', g); box(1.3, 0.9, 0.12, w * 0.28, h * 0.55 + 0.15, 1.55, '#8296B7', '#201826', g)
@@ -253,6 +254,7 @@ const building = (x, z, h, k, ry = 0) => { const [c, t] = HP[k % 3], g = new THR
     for (let f = 0; f < Math.floor((h - 2.5) / 2.2); f++) for (let k2 = -1; k2 <= 1; k2++) win.push([k2 * 1.6, 2.75 + f * 2.2, 1.72])
     if (win.length) scatter(new THREE.BoxGeometry(0.8, 0.9, 0.1), '#8296B7', '#201826', win, g) // ventanas: una malla instanciada por edificio
     cur.add(g); warpable(g, x * 1.7 + z) }
+house(HOME_DOOR.x, HOME_DOOR.z, 4.2, 1, 0, 6)                                                                    // casa de Gabriela: la primera de la fila (tamaño fijo: no cambia el resto del mapa)
 ;[5, 12, 19, 26, 33].forEach((x, i) => i % 2 ? building(x, -8, rr(8, 11), i) : house(x, -8, rr(3.6, 5), i)) // fila de casas sobre la calle 1 (como en el plano)
 building(35, -19, rr(8, 11), 1, Math.PI / 2); house(35, -30, rr(3.6, 5), 2, Math.PI / 2)                       // lado izquierdo de la calle 2
 ;[-7, -17, -27, -35].forEach((z, i) => house(51.2, z, rr(2.4, 3.2), i, -Math.PI / 2))                           // lado derecho de la calle 2 (bajas para no tapar la calle)
@@ -274,7 +276,7 @@ makeLayer('MID', row(4, 4, 8, (x, i) => [x, -15, 6, 7 + (i * 3) % 5, 4]).concat(
 makeLayer('INFRA', [[4, -3.5], [12, -3.5], [28, -3.5], [36, -3.5], [UX - 3.4, -10], [UX - 3.4, -18], [UX - 3.4, -26], [UX - 3.4, -34]].map(([x, z]) => [x, z, 0.3, 3.5, 0.3]))
 makeLayer('FRONT', row(6, 6, 7, (x, i) => [x, 6.8, 1.2 + (i % 2) * 0.6, 0.8 + (i % 3) * 0.3, 1]))
 
-// 11. Interior del MIO: otro espacio flotando en el vacío (entras y sales por la puerta)
+// 10. Interior del MIO: otro espacio flotando en el vacío (entras y sales por la puerta)
 into('BUS')
 const BX = W.busInteriorX
 box(150, 0.5, 40, BX, -1.55, 0, '#799180', '#482642')             // campo bajo el MIO (ya no flota en el vacío)
@@ -318,7 +320,7 @@ const cityBlocks = []; let nb = 0; for (let x = 0; x < CITY_P; x += rr(2.4, 3.4)
     cityG.add(g)
 })
 
-// 12. Objetos interactivos: pos = donde se para el personaje · mark = dónde flota la flecha del objetivo
+// 11. Objetos interactivos: pos = donde se para el personaje · mark = dónde flota la flecha del objetivo
 const V = (x, z) => new THREE.Vector3(x, 0, z)
 const S = GROUPS.STREET
 export const props = {
@@ -343,7 +345,7 @@ export function resetProps() { Object.values(props).forEach(p => { if (!p.mesh) 
 export const marker = new THREE.Mesh(new THREE.ConeGeometry(0.25, 0.5, 8), new THREE.MeshBasicMaterial({ color: 0xf2c063 }))
 marker.rotation.x = Math.PI; root.add(marker)
 
-// 13. Fondo y tema de color: parte del --color-soporte-claro y se oscurece con la ansiedad
+// 12. Fondo y tema de color: parte del --color-soporte-claro y se oscurece con la ansiedad
 const bgClear = new THREE.Color('#8296B7'), bgDark = new THREE.Color('#201826')
 const bgPost = new THREE.Color(), hsl = {}
 let cssRead = false, lastA = -1
@@ -360,7 +362,7 @@ function applyTheme(a) {
     scene.background.copy(base).lerp(bgDark, a)
 }
 
-// 14. Calle eterna: con mucha ansiedad la universidad se aleja, la calle se alarga, la niebla se traga el final y el paso rinde menos
+// 13. Calle eterna: con mucha ansiedad la universidad se aleja, la calle se alarga, la niebla se traga el final y el paso rinde menos
 scene.fog = new THREE.Fog(0x201826, 1e4, 2e4)
 let endK = 0, ext = 0
 export const endless = () => endK // 0 = calle normal · 1 = calle eterna
@@ -379,7 +381,7 @@ function updateEndless(dt) {
     else { scene.fog.near = 1e4; scene.fog.far = 2e4 }
 }
 
-// 15. Actualización por cuadro: deformación, pasto, ciudad del MIO, calle eterna y luces
+// 14. Actualización por cuadro: deformación, pasto, ciudad del MIO, calle eterna y luces
 const cold = new THREE.Color(0x8899bb), warm = new THREE.Color(0xffd9a0)
 let T = 0, cityOff = 0, grassK = 0, grassWas = false
 export function updateEnvironment(dt = 0) {
