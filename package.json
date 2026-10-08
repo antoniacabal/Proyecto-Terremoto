@@ -1,0 +1,10 @@
+{
+  "name": "proyecto-terremoto",
+  "private": true,
+  "description": "Atajos: el proyecto vive en grietas-bajo-la-piel/. Estos scripts permiten correrlo desde la raíz del repo.",
+  "scripts": {
+    "postinstall": "npm --prefix grietas-bajo-la-piel install",
+    "dev": "npm --prefix grietas-bajo-la-piel run dev",
+    "build": "npm --prefix grietas-bajo-la-piel run build"
+  }
+}
