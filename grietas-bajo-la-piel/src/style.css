@@ -1803,6 +1803,7 @@ html.modal-abierto
         box-shadow: 0 0 0 100vmax var(--oms-fondo); /* fondo de borde a borde aunque el artículo tenga margen lateral */
         clip-path: inset(0 -100vmax);
         border-top: 8px solid var(--oms-azul);
+        border-bottom: 8px solid var(--oms-azul); /* raya azul antes del footer, como la de Topos en la página de prevención */
         color: var(--oms-azul-oscuro);
     }
 
@@ -1886,6 +1887,7 @@ html.modal-abierto
     body.pagina-prevencion main > article:not(.seccion-topos) .titulo { color: #A3150F; } /* rojo oscuro: se lee bien sobre el fondo claro */
     body.pagina-prevencion .tarjeta-numero { background: #F2A59C; }
     body.pagina-prevencion .telefono-numero { color: #B3140F; }
+    body.pagina-prevencion #titulo-pagina { color: #FFF3EF; text-shadow: 0 2px 14px rgba(90, 12, 8, 0.55); } /* blanco cálido con sombra roja: el celeste general no combinaba con esta paleta */
 
 /* 6. Footer ----------------- */
 .footer {
