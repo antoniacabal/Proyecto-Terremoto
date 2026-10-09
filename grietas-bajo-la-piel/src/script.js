@@ -254,13 +254,10 @@ async function iniciarMuestra() {
 
     canvas.style.cursor = 'grab'
 
-    // Pistas de giro y zoom: aparecen después de un rato con la muestra a la vista y, cuando
-    // el usuario usa ese control, se van y no vuelven (se recuerda en el navegador)
+    // Pistas de giro y zoom: aparecen en cada visita, después de un rato con la muestra a la vista,
+    // y cada una se va cuando el usuario usa ese control (al volver a la página aparecen de nuevo)
     const pistas = contenedor.querySelector('.muestra-pistas')
-    const leer = (clave) => { try { return localStorage.getItem('grietas-pista-' + clave) === 'usada' } catch (e) { return false } }
-    const guardar = (clave) => { try { localStorage.setItem('grietas-pista-' + clave, 'usada') } catch (e) {} }
-    if (new URLSearchParams(location.search).has('pistas')) { try { localStorage.removeItem('grietas-pista-giro'); localStorage.removeItem('grietas-pista-zoom') } catch (e) {} } // index.html?pistas: las pistas vuelven a salir (para probar o presentar)
-    const usadas = { giro: leer('giro'), zoom: leer('zoom') }
+    const usadas = { giro: false, zoom: false }
     let pistasVisibles = false
 
     const actualizarPistas = () =>
@@ -274,11 +271,10 @@ async function iniciarMuestra() {
     {
         if (usadas[clave]) return
         usadas[clave] = true
-        guardar(clave)
         actualizarPistas()
     }
 
-    if (pistas && !(usadas.giro && usadas.zoom))
+    if (pistas)
     {
         const aLaVista = () => { const caja = contenedor.getBoundingClientRect(); return caja.bottom > window.innerHeight * 0.3 && caja.top < window.innerHeight * 0.7 }
         const mostrar = () =>
@@ -288,7 +284,15 @@ async function iniciarMuestra() {
             actualizarPistas()
             window.removeEventListener('scroll', mostrar)
         }
-        setTimeout(() => { mostrar(); if (!pistasVisibles) window.addEventListener('scroll', mostrar, { passive: true }) }, 4000) // si la muestra no está a la vista, espera a que vuelvan a ella
+        const programar = () => setTimeout(() => { mostrar(); if (!pistasVisibles) window.addEventListener('scroll', mostrar, { passive: true }) }, 4000) // si la muestra no está a la vista, espera a que vuelvan a ella
+        programar()
+        window.addEventListener('pageshow', (e) => // al volver con "atrás" el navegador restaura la página tal cual: las pistas vuelven a empezar
+        {
+            if (!e.persisted) return
+            usadas.giro = usadas.zoom = pistasVisibles = false
+            actualizarPistas()
+            programar()
+        })
     }
 
     // Giro: el ángulo cambió entre que se agarró y se soltó la muestra
