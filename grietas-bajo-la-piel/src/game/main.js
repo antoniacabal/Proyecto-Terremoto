@@ -138,8 +138,13 @@ const MOM_LINES = {
 }
 const momLines = () => runtime.postQuake ? MOM_LINES.post : MOM_LINES.pre
 const freeAgain = () => { busy = false; if (runtime.state === 'EXPLORATION') player.setMode('free'); showTask() }
+// Gabriela gira hacia mamá (por el lado más corto) cuando hablan
+function faceMom() {
+    const m = mom.g.position, r = player.group.rotation, want = Math.atan2(m.x - player.x, m.z - player.z)
+    gsap.to(r, { y: r.y + Math.atan2(Math.sin(want - r.y), Math.cos(want - r.y)), duration: 0.4, ease: 'power2.out' })
+}
 function talkToMom() {
-    busy = true; player.setMode('stop'); ui.say(''); mom.setTalking(true)
+    busy = true; player.setMode('stop'); ui.say(''); mom.setTalking(true); faceMom()
     ui.talk('Mamá', momLines().hello, { onEnd: () => { mom.setTalking(false); momDone = true; glowBreakfast(true); freeAgain() } })
 }
 const FOOD = () => props.desayuno.mesh.children.slice(1, 3) // arepa y huevo (el plato y la taza se quedan)
@@ -155,7 +160,7 @@ function eat() { // se ve cómo el desayuno va desapareciendo a mordiscos; despu
         .to(egg.scale, { x: left, y: left, z: left, duration: post ? 1.4 : 0.9, ease: 'steps(2)' }, '+=0.3')
 }
 function momBye() {
-    const post = runtime.postQuake; mom.setTalking(true); ui.say('')
+    const post = runtime.postQuake; mom.setTalking(true); ui.say(''); faceMom() // después de comer se voltea de nuevo hacia ella
     if (post) gsap.to(runtime, { anxiety: C.baseline, stress: 0, duration: 12 }) // mientras mamá te habla, la ansiedad baja poco a poco
     ui.talk('Mamá', momLines().bye, { onEnd: () => { mom.setTalking(false); if (post) runtime.nextCrisis = C.first; freeAgain() } })
 }
