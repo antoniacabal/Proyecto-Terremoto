@@ -24,6 +24,7 @@
         5.11 Brigada Topos
         5.12 Página de respiración (verde azulado)
         5.13 Organización Mundial de la Salud
+        5.14 Página de prevención (rojizo)
     6. Footer
     7. Reactive
 
@@ -727,6 +728,7 @@ main
     .articulo-mapa [data-tipo="hospital"] { --tipo: var(--tipo-hospital); }
     .articulo-mapa [data-tipo="desastres"] { --tipo: var(--tipo-desastres); }
     .articulo-mapa [data-tipo="apoyo"] { --tipo: var(--tipo-apoyo); }
+    .articulo-mapa .mapa-linea[data-franja="verde"] { --tipo: var(--color-terceario); } /* líneas de socorro y servicios: franja verde para no repetir dos columnas naranjas */
 
     .mapa-filtros
     {
@@ -1033,16 +1035,6 @@ main
         gap: 18px;
         margin-top: 14px;
         list-style: none;
-    }
-
-    @media (min-width: 1100px) /* 4 columnas de 2 filas, llenadas de arriba a abajo: cada columna queda de un solo tipo (y un solo color) */
-    {
-        .mapa-lineas
-        {
-            grid-template-columns: repeat(4, 1fr);
-            grid-template-rows: repeat(2, auto);
-            grid-auto-flow: column;
-        }
     }
 
     .mapa-linea
@@ -1797,6 +1789,7 @@ html.modal-abierto
 
     body.pagina-respiracion .tarjeta { background: #F2FAF9; }
     body.pagina-respiracion .titulo { color: #245A55; }
+    body.pagina-respiracion .tarjeta-numero { background: #A8DBD3; } /* los números de los pasos siguen la paleta de la página (antes amarillos) */
 
     /* 5.13 Organización Mundial de la Salud (respiracion-consciente.html): azul de la OMS sobre blanco */
     .seccion-oms
@@ -1876,6 +1869,22 @@ html.modal-abierto
         .oms-cabecera { flex-direction: column; align-items: flex-start; }
     }
 
+    /* 5.14 Página de recursos de prevención: tonos rojizos, en la línea de la Brigada Topos (atención y prevención) */
+    :root:has(body.pagina-prevencion)
+    {
+        --color-acento: #F3DFDA;          /* fondo: rosado muy claro */
+        --color-tarjeta-sombra: #D9423B;  /* sombra de tarjetas y teléfonos: rojo coral de Topos */
+        --color-scroll-pista: #E8C6C0;
+    }
+
+    :root:has(body.pagina-prevencion):not(.scroll-oscuro) { --scroll-pulgar: #B3140F; } /* sobre el header y el footer oscuros el scroll sigue cambiando como en las demás páginas */
+
+    body.pagina-prevencion .tarjeta:not(.tarjeta--topos),
+    body.pagina-prevencion .telefono { background: #FFF7F5; }
+    body.pagina-prevencion main > article:not(.seccion-topos) .titulo { color: #A3150F; } /* rojo oscuro: se lee bien sobre el fondo claro */
+    body.pagina-prevencion .tarjeta-numero { background: #F2A59C; }
+    body.pagina-prevencion .telefono-numero { color: #B3140F; }
+
 /* 6. Footer ----------------- */
 .footer {
     display: flex;
@@ -1936,34 +1945,69 @@ html.modal-abierto
     display: block;
 }
 
-/* 7. Reactive ----------------- */
+/* 7. Reactive -----------------
+   Mismo orden que el resto del archivo: cada bloque lleva el número de la sección que adapta.
+   Celular = max-width: 768px · Tablet = entre 769px y 1000px */
+
+    /* 0. Generales / Colores */
+    @media (max-width: 768px)
+    {
+        :root { --padding-pagina: 5%; }
+    }
+
+    /* 2.1 Menú */
+    @media (max-width: 768px)
+    {
+        .menu-lista
+        {
+            column-count: 1;
+        }
+
+        .menu-panel
+        {
+            padding: 20px 20px 8px;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce)
+    {
+        .menu-boton-icono span,
+        .menu-boton--abierto .menu-boton-icono span
+        {
+            transition: none;
+        }
+
+        .menu-panel
+        {
+            animation: none;
+        }
+    }
+
+    /* 4.1 Scroll */
+    @media (prefers-reduced-motion: no-preference)
+    {
+        html
+        {
+            scroll-behavior: smooth;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce)
+    {
+        html{ transition: none; }
+    }
+
+    /* 5.1 Titulos */
     @media (max-width: 768px)
     {
         #titulo-pagina,
         .escena-contenido .titulo-principal
-            {
-                font-size: 2.5rem;
-            }
-    }
-
-    @media (max-width: 768px)
-    {
-        .recursos-grid
         {
-            grid-template-columns: 1fr;
+            font-size: 2.5rem;
         }
     }
 
-    @media (max-width: 768px)
-    {
-        .patrocinadores-lista
-        {
-            flex-direction: column;
-            align-items: center;
-            gap: 28px;
-        }
-    }
-
+    /* 5.2 Escena */
     @media (max-width: 768px)
     {
         .escena
@@ -1996,6 +2040,87 @@ html.modal-abierto
         }
     }
 
+    /* 5.4 Articulos */
+    @media (max-width: 768px)
+    {
+        .recursos-grid
+        {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (hover: hover) /* las fotos de las cajas de recursos se ven en gris hasta pasar el mouse */
+    {
+        .recurso-imagen
+        {
+            filter: grayscale(1);
+        }
+
+        .recurso-caja:hover .recurso-imagen,
+        .recurso-caja a:focus-visible .recurso-imagen
+        {
+            filter: grayscale(0);
+        }
+    }
+
+    /* 5.5 Recursos */
+    @media (max-width: 768px)
+    {
+        .recurso-split,
+        .recurso-split--telefonos
+        {
+            grid-template-columns: 1fr;
+            gap: 36px;
+        }
+    }
+
+    @media (max-width: 1000px) and (min-width: 769px)
+    {
+        .recurso-split,
+        .recurso-split--telefonos
+        {
+            grid-template-columns: 1fr;
+        }
+    }
+
+        /* 5.5.1 Imagenes */
+        @media (max-width: 768px)
+        {
+            .imagen-apoyo
+            {
+                min-height: 220px;
+            }
+        }
+
+        @media (max-width: 1000px) and (min-width: 769px)
+        {
+            .imagen-apoyo
+            {
+                min-height: 320px;
+            }
+        }
+
+    /* 5.7 Teléfonos */
+    @media (max-width: 768px)
+    {
+        .telefonos
+        {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    /* 5.9 Linea de ayuda */
+    @media (max-width: 768px)
+    {
+        .linea-ayuda
+        {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+        }
+    }
+
+    /* 5.10 Advertencia */
     @media (max-width: 768px)
     {
         .advertencia-caja
@@ -2030,6 +2155,14 @@ html.modal-abierto
         }
     }
 
+    @media (max-width: 768px), (pointer: coarse) /* aviso de "pensada para computador" en celulares y pantallas táctiles */
+    {
+        .advertencia-aviso
+        {
+            display: block;
+        }
+    }
+
     @media (prefers-reduced-motion: reduce)
     {
         .advertencia[open]::backdrop { animation: none; }
@@ -2037,104 +2170,13 @@ html.modal-abierto
         .advertencia-accion svg { transition: none; }
     }
 
-@media (max-width: 768px)
-{
-    :root { --padding-pagina: 5%; }
-
-    .recurso-split,
-    .recurso-split--telefonos
+    /* 6. Footer */
+    @media (max-width: 768px)
     {
-        grid-template-columns: 1fr;
-        gap: 36px;
+        .patrocinadores-lista
+        {
+            flex-direction: column;
+            align-items: center;
+            gap: 28px;
+        }
     }
-
-    .imagen-apoyo
-    {
-        min-height: 220px;
-    }
-
-    .telefonos
-    {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .menu-lista
-    {
-        column-count: 1;
-    }
-
-    .menu-panel
-    {
-        padding: 20px 20px 8px;
-    }
-
-    .linea-ayuda
-    {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-    }
-}
-
-@media (max-width: 1000px) and (min-width: 769px)
-{
-    .recurso-split,
-    .recurso-split--telefonos
-    {
-        grid-template-columns: 1fr;
-    }
-
-    .imagen-apoyo
-    {
-        min-height: 320px;
-    }
-}
-
-@media (prefers-reduced-motion: no-preference)
-{
-    html
-    {
-        scroll-behavior: smooth;
-    }
-}
-
-@media (prefers-reduced-motion: reduce)
-{
-    html{ transition: none; }
-}
-
-@media (hover: hover)
-{
-    .recurso-imagen
-    {
-        filter: grayscale(1);
-    }
-
-    .recurso-caja:hover .recurso-imagen,
-    .recurso-caja a:focus-visible .recurso-imagen
-    {
-        filter: grayscale(0);
-    }
-}
-
-@media (prefers-reduced-motion: reduce)
-{
-    .menu-boton-icono span,
-    .menu-boton--abierto .menu-boton-icono span
-    {
-        transition: none;
-    }
-
-    .menu-panel
-    {
-        animation: none;
-    }
-}
-
-@media (max-width: 768px), (pointer: coarse)
-{
-    .advertencia-aviso
-    {
-        display: block;
-    }
-}
