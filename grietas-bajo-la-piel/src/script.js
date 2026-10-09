@@ -1,7 +1,7 @@
 /* Indice
 
     0. Imports
-    1. Menu desplegable
+    1. Menu desplegable (y desplazamiento suave a las secciones)
     2. Ventana de advertencia (index.html)
     3. Muestra 3D del juego (index.html)
         3.1 Canvas
@@ -56,6 +56,23 @@ function iniciarMenu() {
     // Cerrar al elegir un enlace
     panel.addEventListener('click', function (e) {
         if (e.target.closest('a')) abrir(false);
+    });
+}
+
+// Desplazamiento suave hacia las secciones de la misma página (antes era scroll-behavior: smooth en el CSS,
+// pero junto con overscroll-behavior en html la rueda del mouse dejaba de bajar la página en Chrome)
+function iniciarDesplazamientoSuave() {
+    var sinMovimiento = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    document.addEventListener('click', function (e) {
+        var enlace = e.target.closest('a[href*="#"]');
+        if (!enlace || enlace.target === '_blank') return;
+        var url = new URL(enlace.href, location.href);
+        if (url.pathname !== location.pathname || !url.hash) return; // solo enlaces a esta misma página
+        var destino = document.getElementById(decodeURIComponent(url.hash.slice(1)));
+        if (!destino) return;
+        e.preventDefault();
+        destino.scrollIntoView({ behavior: sinMovimiento ? 'auto' : 'smooth' });
+        history.pushState(null, '', url.hash);
     });
 }
 
@@ -399,6 +416,7 @@ async function iniciarMapa() {
 
 // 7. Inicio -----------------
 iniciarMenu()
+iniciarDesplazamientoSuave()
 iniciarMapa()
 iniciarAdvertencia()
 iniciarScroll()

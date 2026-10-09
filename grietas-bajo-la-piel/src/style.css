@@ -336,9 +336,9 @@ html, body{
     overflow-x: hidden;
 }
 
-html, body
+html
 {
-    overscroll-behavior: none; /* sin el "rebote" de Mac / Safari: no se puede subir ni bajar más allá del header y el footer */
+    overscroll-behavior: none; /* sin el "rebote" de Mac / Safari. Solo en html: si se pone también en body, la rueda del mouse deja de bajar la página (body no puede pasarle el scroll a la ventana) */
 }
 
 html
@@ -2001,14 +2001,6 @@ html.modal-abierto
     }
 
     /* 4.1 Scroll */
-    @media (prefers-reduced-motion: no-preference)
-    {
-        html
-        {
-            scroll-behavior: smooth;
-        }
-    }
-
     @media (prefers-reduced-motion: reduce)
     {
         html{ transition: none; }
