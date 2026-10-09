@@ -208,9 +208,9 @@ function startRide() { if (runtime.busMoving) return; runtime.busMoving = true; 
 function interact() {
     if (runtime.paused || runtime.state !== 'EXPLORATION' || busy) return
     if (runtime.space === 'BUS') { // sentarse / levantarse en las bancas del MIO
-        if (player.sitting) return player.unsit()
+        if (player.sitting) return runtime.postQuake ? player.unsit() : undefined // antes del sismo vas sentada todo el viaje
         const s = SEATS.filter(s => !s.taken).sort((a, b) => Math.hypot(a.x - player.x, a.z - player.z) - Math.hypot(b.x - player.x, b.z - player.z))[0]
-        if (s && Math.hypot(s.x - player.x, s.z - player.z) < 2.2) { player.sit(s); return startRide() }
+        if (s && Math.hypot(s.x - player.x, s.z - player.z) < 2.2) { player.sit(s, !runtime.postQuake); return startRide() }
     }
     if (runtime.postQuake && !current() && nearBus()) return busDone ? ui.say('No te sientes capaz de volver a subir al MIO. Sigues a pie.') : askBus() // pulsar E junto al MIO vuelve a abrir la opción
     const c = current(); if (!c || TASK_SPACE[c] !== runtime.space) return
