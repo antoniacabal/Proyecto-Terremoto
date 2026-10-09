@@ -1796,15 +1796,16 @@ html.modal-abierto
         --color-acento: color-mix(in srgb, var(--color-terceario) 22%, white);         /* fondo: salvia muy claro */
         --color-tarjeta-sombra: var(--color-terceario);                                /* sombra de tarjetas y avisos */
         --color-scroll-pista: color-mix(in srgb, var(--color-terceario) 40%, white);
+        --respiracion-titulo: #1C7A6E;                                                  /* verde azulado saturado (de la pared de las fotos): títulos y brillo del título grande */
     }
 
     :root:has(body.pagina-respiracion):not(.scroll-oscuro) { --scroll-pulgar: color-mix(in srgb, var(--color-terceario) 75%, black); } /* sobre el header y el footer oscuros el scroll sigue cambiando como en las demás páginas */
 
     body.pagina-respiracion .tarjeta { background: color-mix(in srgb, var(--color-terceario) 6%, white); }
-    body.pagina-respiracion .titulo { color: color-mix(in srgb, var(--color-terceario) 55%, black); }          /* salvia oscuro: se lee bien sobre el fondo claro */
+    body.pagina-respiracion .titulo { color: var(--respiracion-titulo); }                                  /* más saturado y llamativo; se lee bien sobre el fondo claro */
     body.pagina-respiracion .tarjeta-numero { background: color-mix(in srgb, var(--color-terceario) 45%, white); } /* los números de los pasos siguen la paleta de la página */
     body.pagina-respiracion .aviso li::marker { color: var(--color-terceario); } /* viñetas de "¿Cuándo consultar a un profesional?" (antes naranjas) */
-    body.pagina-respiracion #titulo-pagina { color: color-mix(in srgb, var(--color-terceario) 8%, white); text-shadow: 0 2px 14px color-mix(in srgb, color-mix(in srgb, var(--color-terceario) 45%, black) 70%, transparent); } /* blanco salvia con sombra difuminada, como el título de prevención */
+    body.pagina-respiracion #titulo-pagina { color: #F4FBF9; text-shadow: 0 2px 16px color-mix(in srgb, var(--respiracion-titulo) 85%, transparent), 0 0 4px color-mix(in srgb, var(--respiracion-titulo) 45%, transparent); } /* blanco con brillo verde azulado detrás, como el título de prevención */
 
     /* 5.13 Organización Mundial de la Salud (respiracion-consciente.html): azul de la OMS sobre blanco */
     .seccion-oms
