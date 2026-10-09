@@ -22,7 +22,7 @@
         5.9 Linea de ayuda
         5.10 Advertencia
         5.11 Brigada Topos
-        5.12 Página de respiración (verde azulado)
+        5.12 Página de respiración (verde salvia, a partir de --color-terceario)
         5.13 Organización Mundial de la Salud
         5.14 Página de prevención (rojizo)
     6. Footer
@@ -47,7 +47,7 @@
     --color-soporte-claro: #e4ffff; /* Cuadros informativos/fondos tranquilos */
     --color-tarjeta-sombra: #DE924A; /* Caja de atrás de todas las tarjetas, teléfonos y avisos (naranja claro) */
     --color-scroll-pista: #DABE9E; /* Franja del scroll sobre fondo crema (crema un poco más oscuro) */
-    --color-atencion: #BF4E24; /* Color extra para llamar la atencion/alertas (también el pedazo y las flechas del scroll sobre fondo crema) */
+    --color-atencion: #BF4E24; /* Color extra para llamar la atencion/alertas, también el pedazo y las flechas del scroll sobre fondo crema */
     --color-texto: #101720; /* Color negro para textos que no es negro puro */
     --color-escena: rgb(10, 5, 14); /* Fondo de la sección del juego (muestra del index y narrativa) */
     --color-advertencia: #D01F2A; /* Título de la ventana de advertencia */
@@ -1777,19 +1777,20 @@ html.modal-abierto
         .topos-cabecera { flex-direction: column; align-items: flex-start; }
     }
 
-    /* 5.12 Página de técnicas de respiración: verde azulado suave (agua, calma), más cercano a un espacio de terapia */
+    /* 5.12 Página de técnicas de respiración: tonos que salen de --color-terceario (verde salvia), más cercanos a un espacio de terapia.
+       Todo se mezcla a partir de esa variable: si cambia el verde del :root, cambia toda la página */
     :root:has(body.pagina-respiracion)
     {
-        --color-acento: #D9EDEA;          /* fondo: verde agua muy claro */
-        --color-tarjeta-sombra: #7FBDB4;  /* sombra de tarjetas y avisos */
-        --color-scroll-pista: #BFDDD8;
+        --color-acento: color-mix(in srgb, var(--color-terceario) 22%, white);         /* fondo: salvia muy claro */
+        --color-tarjeta-sombra: var(--color-terceario);                                /* sombra de tarjetas y avisos */
+        --color-scroll-pista: color-mix(in srgb, var(--color-terceario) 40%, white);
     }
 
-    :root:has(body.pagina-respiracion):not(.scroll-oscuro) { --scroll-pulgar: #3B8279; } /* sobre el header y el footer oscuros el scroll sigue cambiando como en las demás páginas */
+    :root:has(body.pagina-respiracion):not(.scroll-oscuro) { --scroll-pulgar: color-mix(in srgb, var(--color-terceario) 75%, black); } /* sobre el header y el footer oscuros el scroll sigue cambiando como en las demás páginas */
 
-    body.pagina-respiracion .tarjeta { background: #F2FAF9; }
-    body.pagina-respiracion .titulo { color: #245A55; }
-    body.pagina-respiracion .tarjeta-numero { background: #A8DBD3; } /* los números de los pasos siguen la paleta de la página (antes amarillos) */
+    body.pagina-respiracion .tarjeta { background: color-mix(in srgb, var(--color-terceario) 6%, white); }
+    body.pagina-respiracion .titulo { color: color-mix(in srgb, var(--color-terceario) 55%, black); }          /* salvia oscuro: se lee bien sobre el fondo claro */
+    body.pagina-respiracion .tarjeta-numero { background: color-mix(in srgb, var(--color-terceario) 45%, white); } /* los números de los pasos siguen la paleta de la página */
 
     /* 5.13 Organización Mundial de la Salud (respiracion-consciente.html): azul de la OMS sobre blanco */
     .seccion-oms
