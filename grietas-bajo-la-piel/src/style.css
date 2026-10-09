@@ -336,6 +336,16 @@ html, body{
     overflow-x: hidden;
 }
 
+html, body
+{
+    overscroll-behavior: none; /* sin el "rebote" de Mac / Safari: no se puede subir ni bajar más allá del header y el footer */
+}
+
+html
+{
+    background: var(--color-soporte-oscuro); /* si algún navegador viejo igual rebota, lo que asoma es del color del header y el footer */
+}
+
     /* 4.1 Scroll */
     @property --scroll-pista
     {
