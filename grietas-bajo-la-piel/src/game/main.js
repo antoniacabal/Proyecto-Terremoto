@@ -96,7 +96,7 @@ let scared = null, scareCalm = false, lastScare = -999 // lastScare: cuándo fue
 function scare(t) {
     if (t - lastScare < CONFIG.street.scareGap) return false
     const e = scareBuilding(player.x, player.z); if (!e) return false
-    scared = e; lastScare = t; busy = true; player.setMode('stop'); ui.say('Ese edificio... ¿se está moviendo?')
+    scared = e; lastScare = t; busy = true; player.setMode('stop'); faceTo(e.x, e.g.position.z); ui.say('Ese edificio... ¿se está moviendo?') // se voltea a mirarlo
     gsap.to(e, { sh: 0.45, duration: 0.5 }); gsap.to(e, { tilt: 0.07, sink: 0.12, duration: 2.2, delay: 0.5, ease: 'power2.in' }) // sutil: tiembla y se ladea apenas
     gsap.to({}, { duration: 0.22, repeat: 8, onRepeat: () => !runtime.paused && audio.blip(40 + Math.random() * 25, 0.25, 0.07, 'sawtooth') })
     gsap.to(runtime, { anxiety: Math.max(runtime.anxiety, 0.55), duration: 2 })
@@ -139,11 +139,12 @@ const MOM_LINES = {
 }
 const momLines = () => runtime.postQuake ? MOM_LINES.post : MOM_LINES.pre
 const freeAgain = () => { busy = false; if (runtime.state === 'EXPLORATION') player.setMode('free'); showTask() }
-// Gabriela gira hacia mamá (por el lado más corto) cuando hablan
-function faceMom() {
-    const m = mom.g.position, r = player.group.rotation, want = Math.atan2(m.x - player.x, m.z - player.z)
+// Gabriela gira hacia un punto (por el lado más corto): hacia mamá cuando hablan y hacia el edificio que parece moverse
+function faceTo(x, z) {
+    const r = player.group.rotation, want = Math.atan2(x - player.x, z - player.z)
     gsap.to(r, { y: r.y + Math.atan2(Math.sin(want - r.y), Math.cos(want - r.y)), duration: 0.4, ease: 'power2.out' })
 }
+const faceMom = () => faceTo(mom.g.position.x, mom.g.position.z)
 function talkToMom() {
     busy = true; player.setMode('stop'); ui.say(''); mom.setTalking(true); faceMom()
     ui.talk('Mamá', momLines().hello, { onEnd: () => { mom.setTalking(false); momDone = true; glowBreakfast(true); freeAgain() } })
@@ -239,7 +240,7 @@ addEventListener('keydown', (e) => e.code === 'KeyE' && !e.repeat && interact())
 // 7. Explicación de los minijuegos: sale la primera vez que aparece cada tipo (se reinicia al recargar la página)
 const seenTutorials = new Set()
 const TUTORIALS = {
-    hold: ['Inhalar: mantén el clic (o la barra espaciadora) y tu barra verde se llena. En pantalla táctil, mantén el botón E.', 'Sostener: sigue manteniendo el clic; la barra se queda llena.', 'Exhalar: suelta el clic y la barra se vacía al ritmo de la aguja. En la pausa, déjalo suelto.', 'El rótulo debajo del medidor te dice en todo momento qué hacer. Mantén tu barra dentro de la franja gris clara y la crisis pasa.', 'El reloj junto al medidor marca cuánto le queda al ejercicio.'],
+    hold: ['Inhalar: mantén el clic (o la barra espaciadora). En pantalla táctil, mantén el botón E.', 'Sostener: sigue manteniendo. Exhalar y Pausa: suelta.', 'El reloj junto al medidor cuenta los segundos de cada fase (4-4-4-4, o 4 al inhalar y 6 u 8 al exhalar): cambia justo cuando llega a 0.', 'Cuenta el timing: si mantienes o sueltas a destiempo, la crisis no pasa.'],
     earth: ['Camina con WASD o las flechas hasta el pasto que hay a los lados de la calle. La flecha dorada te indica hacia dónde.', 'Quédate sobre el pasto respirando lento.', 'Solo ahí baja tu ansiedad: si sales, lo avanzado se va perdiendo.', 'Tienes un tiempo límite: mira el reloj junto al medidor. Si se acaba antes de llenar la barra, no lo lograste.']
 }
 
@@ -325,11 +326,11 @@ breathing.init({
             return void gsap.delayedCall(2, () => { if (runtime.state === 'BREATHING') { showTask(); sm.go('EXPLORATION') } })
         }
         if (ok) {
-            runtime.successful++; gsap.to(runtime, { anxiety: bus ? B.baseline : C.baseline, duration: 1.5 })
+            runtime.successful++; runtime.glitch = Math.max(0, runtime.glitch - 1); gsap.to(runtime, { anxiety: bus ? B.baseline : C.baseline, duration: 1.5 }) // ganar baja un nivel de falla
             gsap.to(runtime, { envProgress: Math.min(1, runtime.envProgress + CONFIG.env.successGain), duration: 3 })
             return sm.go('CALM')
         }
-        runtime.failures++; runtime.anxiety = Math.min(1, runtime.anxiety + CONFIG.anxiety.failPenalty); ui.say('Perdiste el ritmo. Sigue, sin prisa.')
+        runtime.failures++; runtime.glitch++; runtime.anxiety = Math.min(1, runtime.anxiety + CONFIG.anxiety.failPenalty); ui.say('Perdiste el ritmo. Sigue, sin prisa.')
         if (runtime.failures >= CONFIG.maxFailures) return sm.go('FAILURE')
         gsap.delayedCall(2, () => { if (runtime.state === 'BREATHING') { showTask(); sm.go('EXPLORATION') } })
     }
@@ -338,7 +339,7 @@ breathing.init({
 // 10. Modo ?debug (sin narrativa): saltar directo a cada mapa con todo lo anterior ya hecho
 function jumpTo(map) {
     gsap.globalTimeline.clear(); clearInterval(rumble); breathing.stop(); ui.showBreath(false); ui.hideChoice(); ui.hideEnding(); ui.card(); ui.closeTalk(); mom.setTalking(false); resetFocus(); resetScare()
-    runtime.quake = 0; runtime.failures = 0; runtime.successful = 0
+    runtime.quake = 0; runtime.failures = 0; runtime.successful = 0; runtime.glitch = 0
     if (map === 'ANNOUNCEMENT') return sm.go('ANNOUNCEMENT')
     if (map === 'ENDING_GOOD' || map === 'ENDING_BAD') return sm.go(map)
     const post = map.endsWith('_POST') || map === 'UNIVERSIDAD'

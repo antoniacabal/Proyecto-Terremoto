@@ -86,7 +86,7 @@ export const mom = (() => {
     }
 })()
 
-// 3.1 Personas que no existen: desde el segundo minijuego perdido aparecen siluetas "glitcheadas" alrededor de Gabriela.
+// 3.1 Personas que no existen: desde el nivel de falla 2 (dos minijuegos perdidos sin ganar en medio) aparecen siluetas "glitcheadas" alrededor de Gabriela.
 //     Titilan, tienen un eco rojo desfasado, se quedan mirándola y desaparecen cuando se acerca (para reaparecer en otro lado)
 const phantoms = []
 const phantomMats = () => ({ body: new THREE.MeshBasicMaterial({ color: 0x0d0d10, transparent: true, opacity: 0.85 }), eye: new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true }), echo: new THREE.MeshBasicMaterial({ color: 0xd01f2a, transparent: true, opacity: 0.2, depthWrite: false }) })
@@ -98,7 +98,7 @@ for (let i = 0; i < 8; i++) {
     g.add(b, hg, echo); g.visible = false
     phantoms.push({ g, echo, m, t: 0, space: '' })
 }
-const phantomCount = () => runtime.postQuake && runtime.failures >= 2 ? Math.min(phantoms.length, 2 + runtime.failures * 2) : 0 // más fallos, más personas que no existen
+const phantomCount = () => runtime.postQuake && runtime.glitch >= 2 ? Math.min(phantoms.length, 2 + runtime.glitch * 2) : 0 // nivel de falla 2 o más: más nivel, más personas que no existen (ganar un minijuego baja el nivel)
 function placePhantom(p, sp) {
     for (let k = 0; k < 25; k++) { // lejos de Gabriela pero no tanto: en el borde de lo que ve
         const a = Math.random() * Math.PI * 2, d = 4 + Math.random() * 5, x = player.x + Math.cos(a) * d, z = player.z + Math.sin(a) * d
