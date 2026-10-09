@@ -7,11 +7,11 @@ export const CONFIG = {
     anxiety: { failPenalty: 0.1, shakeMax: 0.12, blurMax: 3, satMin: 0.5, postQuakeSat: 0.85, vignetteMax: 0.85, distort: 1 }, // distort: cuánto se deforma la ciudad con la ansiedad (0 = nada)
     camera: { azimuth: 45, elevation: 35.264, distance: 24, zoom: 1, view: 12, x: -4, y: 1, z: 0, follow: 3, lead: 3 }, // follow: suavidad · lead: cuánto mira por delante del personaje en la calle
     env: { light: 1, successGain: 0.15 },
-    earth: { patches: 3, need: 4, timeout: 40, relief: 0.1 }, npcs: { street: 9, bus: 3 }, // minijuego y NPCs
+    earth: { patches: 3, need: 4, timeout: 40, relief: 0.1 }, npcs: { street: 22, bus: 3 }, // minijuego y NPCs
     player: { speed: 3.5, startX: -1.6, startZ: 0, reach: 1.8, screenRelative: true },
-    bus: { calmRide: 7, time: 32, crisisMin: 7, crisisMax: 12, startAnxiety: 0.4, baseline: 0.25, drift: 0.014, driftMax: 0.7 }, // viaje en el MIO: mucha más ansiedad
+    bus: { calmRide: 7, time: 32, traumaMin: 8, traumaMax: 12, crisisMin: 7, crisisMax: 12, startAnxiety: 0.4, baseline: 0.25, drift: 0.014, driftMax: 0.7 }, // viaje en el MIO: mucha más ansiedad · trauma = a los cuántos s el frenón te obliga a bajar (después del sismo)
     street: { endless: 28, from: 0.45, full: 0.85, slow: 0.55 }, // calle eterna: cuánto se aleja la universidad, desde/hasta qué ansiedad y cuánto se frena el paso
-    world: { houseCenterX: -4.2, homeX: -30, busX: 20, uniX: 43, uniGateZ: -38, busInteriorX: 106, busStartX: 101.4 },
+    world: { houseCenterX: -4.2, homeX: -30, busX: 20, turn1X: 56, turn2Z: -30, uniX: 100, uniGateZ: -66, busInteriorX: 106, busStartX: 101.4 }, // la calle va en Z: derecha → arriba (turn1X) → derecha (turn2Z) → arriba hasta la universidad
     exitUrl: 'index.html'
 }
 export const STATES = ['INTRO', 'EXPLORATION', 'QUAKE', 'ANNOUNCEMENT', 'ANXIETY', 'CHOICE', 'BREATHING', 'CALM', 'FAILURE', 'ARRIVAL', 'ENDING_GOOD', 'ENDING_BAD']

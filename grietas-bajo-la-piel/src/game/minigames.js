@@ -26,7 +26,7 @@ const earth = {
         if (on) { onT += dt; runtime.anxiety = Math.max(0, runtime.anxiety - E.relief * dt) } // solo baja sobre el pasto
         if (onT >= E.need) return { prompt: '', fill: 1, done: true }
         if (eT > E.timeout) return { prompt: '', fill: 0, done: false }
-        return { prompt: on ? `Respira lento... ${Math.ceil(E.need - onT)} s` : 'Camina hasta el pasto, a un lado de la calle', fill: onT / E.need }
+        return { prompt: on ? `Respira lento... ${Math.ceil(E.need - onT)} s` : 'Camina hasta el pasto, a un lado de la calle', label: on ? 'Respira lento' : 'Busca el pasto', fill: onT / E.need }
     }
 }
 

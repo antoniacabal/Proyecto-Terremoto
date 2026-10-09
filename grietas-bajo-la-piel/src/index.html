@@ -39,6 +39,7 @@
                                 <li><a class="menu-enlace" href="respiracion-consciente.html#respira">Pausa y respira</a></li>
                                 <li><a class="menu-enlace" href="respiracion-consciente.html#pap">Primeros auxilios psicológicos</a></li>
                                 <li><a class="menu-enlace" href="respiracion-consciente.html#ayuda">Redes de apoyo</a></li>
+                                <li><a class="menu-enlace" href="respiracion-consciente.html#oms">Organización Mundial de la Salud</a></li>
                             </ul>
                         </li>
                         <li class="menu-grupo">
@@ -49,6 +50,7 @@
                                 <li><a class="menu-enlace" href="herramientas-prevencion.html#primeros-auxilios">Primeros auxilios</a></li>
                                 <li><a class="menu-enlace" href="herramientas-prevencion.html#mascotas">Mascotas</a></li>
                                 <li><a class="menu-enlace" href="herramientas-prevencion.html#telefonos">Números de emergencia</a></li>
+                                <li><a class="menu-enlace" href="herramientas-prevencion.html#topos">Brigada Topos</a></li>
                             </ul>
                         </li>
                         <li class="menu-grupo">
@@ -80,7 +82,25 @@
                     <button type="button" class="boton" id="boton-iniciar" aria-haspopup="dialog">Iniciar</button>
                 </div>
                 <div class="escena-canvas">
-                    <canvas class="webgl" aria-label="Muestra del juego"></canvas>
+                    <canvas class="webgl" aria-label="Muestra del juego: arrastra para girarla y usa la rueda del mouse o pellizca para acercarla"></canvas>
+
+                    <!-- Pistas de los controles (script.js las muestra después de un rato y las retira cuando se usan) -->
+                    <div class="muestra-pistas" aria-hidden="true">
+                        <svg class="muestra-pista muestra-pista--giro muestra-pista--izquierda" viewBox="0 0 80 120">
+                            <path d="M62 10 C 18 30, 14 88, 58 108" />
+                            <path d="M40 98 L 58 108 L 48 88" />
+                        </svg>
+                        <svg class="muestra-pista muestra-pista--giro muestra-pista--derecha" viewBox="0 0 80 120">
+                            <path d="M18 10 C 62 30, 66 88, 22 108" />
+                            <path d="M40 98 L 22 108 L 32 88" />
+                        </svg>
+                        <p class="muestra-pista muestra-pista--giro muestra-pista-texto muestra-pista-texto--giro">Arrastra para girar</p>
+                        <p class="muestra-pista muestra-pista--zoom muestra-pista-texto muestra-pista-texto--zoom">
+                            <svg viewBox="0 0 24 24"><circle cx="10" cy="10" r="6.5" /><path d="M15 15 L 21 21 M10 7 V 13 M7 10 H 13" /></svg>
+                            <span class="muestra-zoom-mouse">Rueda del mouse para acercar</span>
+                            <span class="muestra-zoom-tactil">Pellizca para acercar</span>
+                        </p>
+                    </div>
                 </div>
             </section>
 
@@ -180,7 +200,7 @@
 
         <footer class="footer" role="contentinfo">
             <div class="patrocinadores">
-                <h2 class="patrocinadores-titulo"> Con el apoyo de </h2>
+                <h2 class="patrocinadores-titulo"> Patrocinadores </h2>
                 <ul class="patrocinadores-lista">
                     <li><a href="https://www.topos.mx/" target="_blank" rel="noopener noreferrer">
                         <img class="patrocinador-logo" src="./media/logo-topos-tlaltelolco.webp" alt="Logo de la brigada de rescate Topos tlaltelolco">

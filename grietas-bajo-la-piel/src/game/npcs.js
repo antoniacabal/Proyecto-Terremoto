@@ -7,7 +7,7 @@
 
 // 0. Imports
 import * as THREE from 'three'
-import { spaces, walkableIn, SEATS } from './environment.js'
+import { spaces, walkableIn, SEATS, STREET_X0, SEGS, ROUTE_LEN, routePoint } from './environment.js'
 import { CONFIG, runtime } from './config.js'
 import { player } from './player.js'
 
@@ -25,15 +25,15 @@ const make = () => { // la cabeza y los ojos van en su propio grupo para poder g
 const r = (a, b) => a + Math.random() * (b - a)
 const npcs = [], R = 0.85 // R = distancia mínima entre centros
 const add = (o) => { o.g.userData.n = o; o.parent.add(o.g); npcs.push({ vx: 0, vz: 0, cool: 0, t: 0, state: 'walk', ...o }) }
-const UX = CONFIG.world.uniX
-const ROUTES = [ // axis = eje por el que caminan · lanes = carriles · min/max = tramo que recorren
-    { axis: 'x', lanes: [-2.3, -1.2, 1.2, 2.3], min: 3, max: 38.5 },               // calle 1
-    { axis: 'z', lanes: [UX - 2.1, UX - 1.1, UX + 1.1, UX + 2.1], min: -35, max: -4 } // calle 2 (hacia la universidad)
-]
+const ROUTES = SEGS.map((s, i) => { // uno por tramo de la calle · axis = eje por el que caminan · lanes = carriles · min/max = tramo que recorren
+    const c = s.axis === 'x' ? s.z0 : s.x0, [a, b] = s.axis === 'x' ? [Math.min(s.x0, s.x1), Math.max(s.x0, s.x1)] : [Math.min(s.z0, s.z1), Math.max(s.z0, s.z1)]
+    return { axis: s.axis, lanes: [c - 2.3, c - 1.2, c + 1.2, c + 2.3], min: (i === 0 ? STREET_X0 : a) + 2, max: b - 2 }
+})
 const BUS_X = CONFIG.world.busX
 for (let i = 0; i < CONFIG.npcs.street; i++) {
-    let route = ROUTES[i % 3 === 2 ? 1 : 0]
-    if (route === ROUTES[0] && route.lanes[i % 4] < 0) route = { ...route, max: BUS_X - 3.5 } // del lado del MIO dan la vuelta antes del paradero: así no te encierran contra el bus
+    const d = (i + 0.5) / CONFIG.npcs.street * ROUTE_LEN, si = SEGS.indexOf(routePoint(d)[2]) // repartidos a lo largo de todo el recorrido
+    let route = ROUTES[si]
+    if (si === 0 && route.lanes[i % 4] < 0) route = d < BUS_X - STREET_X0 ? { ...route, max: BUS_X - 3.5 } : { ...route, min: BUS_X + 8.5 } // del lado del MIO no lo cruzan: así no te encierran contra el bus
     let x = 0, z = 0
     for (let k = 0; k < 80; k++) { // busca un lugar libre y lejos de los demás, para que dos NPC nunca nazcan fusionados
         const along = r(route.min, route.max), lane = route.lanes[i % 4] + r(-.2, .2)
@@ -124,6 +124,12 @@ export function updateNpcs(dt, t) {
         if (n.sp !== sp) continue
         const p = n.g.position, dx = p.x - player.x, dz = p.z - player.z, d = Math.hypot(dx, dz)
         if (d < 3.5) near++
+        const hd = n.g.userData.head // después del sismo, la gente cercana gira la cabeza y se queda mirándote
+        if (q <= 0.001 && n.kind !== 'driver') {
+            let want = 0
+            if (runtime.postQuake && d < 4.5) { want = Math.atan2(-dx, -dz) - n.g.rotation.y; want = Math.max(-1.5, Math.min(1.5, Math.atan2(Math.sin(want), Math.cos(want)))) }
+            hd.rotation.y += (want - hd.rotation.y) * Math.min(1, dt * 5)
+        }
         if (d > 0 && d < R) {
             const ux = dx / d, uz = dz / d, o = R - d
             if (n.cool <= 0) { // chocar = parar y mirar (una sola vez cada tanto: si no, al seguir tocándolo se quedaba quieto para siempre y te encerraba)

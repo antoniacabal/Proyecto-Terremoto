@@ -237,6 +237,59 @@ async function iniciarMuestra() {
 
     canvas.style.cursor = 'grab'
 
+    // Pistas de giro y zoom: aparecen después de un rato con la muestra a la vista y, cuando
+    // el usuario usa ese control, se van y no vuelven (se recuerda en el navegador)
+    const pistas = contenedor.querySelector('.muestra-pistas')
+    const leer = (clave) => { try { return localStorage.getItem('grietas-pista-' + clave) === 'usada' } catch (e) { return false } }
+    const guardar = (clave) => { try { localStorage.setItem('grietas-pista-' + clave, 'usada') } catch (e) {} }
+    const usadas = { giro: leer('giro'), zoom: leer('zoom') }
+    let pistasVisibles = false
+
+    const actualizarPistas = () =>
+    {
+        if (!pistas) return
+        pistas.classList.toggle('mostrar-giro', pistasVisibles && !usadas.giro)
+        pistas.classList.toggle('mostrar-zoom', pistasVisibles && !usadas.zoom)
+    }
+
+    const usar = (clave) =>
+    {
+        if (usadas[clave]) return
+        usadas[clave] = true
+        guardar(clave)
+        actualizarPistas()
+    }
+
+    if (pistas && !(usadas.giro && usadas.zoom))
+    {
+        const aLaVista = () => { const caja = contenedor.getBoundingClientRect(); return caja.bottom > window.innerHeight * 0.3 && caja.top < window.innerHeight * 0.7 }
+        const mostrar = () =>
+        {
+            if (!aLaVista()) return
+            pistasVisibles = true
+            actualizarPistas()
+            window.removeEventListener('scroll', mostrar)
+        }
+        setTimeout(() => { mostrar(); if (!pistasVisibles) window.addEventListener('scroll', mostrar, { passive: true }) }, 4000) // si la muestra no está a la vista, espera a que vuelvan a ella
+    }
+
+    // Giro: el ángulo cambió entre que se agarró y se soltó la muestra
+    let anguloInicial = null
+    controls.addEventListener('start', () => { anguloInicial = [controls.getAzimuthalAngle(), controls.getPolarAngle()] })
+    controls.addEventListener('end', () =>
+    {
+        if (!anguloInicial) return
+        const giro = Math.abs(controls.getAzimuthalAngle() - anguloInicial[0]) + Math.abs(controls.getPolarAngle() - anguloInicial[1])
+        if (giro > 0.08) usar('giro')
+        anguloInicial = null
+    })
+
+    // Zoom: rueda del mouse o pellizco con dos dedos (cuenta aunque ya esté en el límite del zoom)
+    const dedos = new Set()
+    canvas.addEventListener('wheel', () => usar('zoom'), { passive: true })
+    canvas.addEventListener('pointerdown', (e) => { dedos.add(e.pointerId); if (dedos.size >= 2) usar('zoom') })
+    ;['pointerup', 'pointercancel'].forEach(tipo => canvas.addEventListener(tipo, (e) => dedos.delete(e.pointerId)))
+
     // 3.8 Render -----------------
     const renderer = new THREE.WebGLRenderer({
         canvas: canvas,

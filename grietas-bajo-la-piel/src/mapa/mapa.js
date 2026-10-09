@@ -82,7 +82,7 @@ function crearFiltros(barra, alCambiar) {
 }
 
 function pintarLineas(lista) {
-    lista.replaceChildren(...LINEAS.map(l => h('li', { class: 'mapa-linea', 'data-tipo': l.tipo },
+    lista.replaceChildren(...LINEAS.map(l => h('li', { class: 'mapa-linea', 'data-tipo': l.tipo, 'data-franja': l.franja },
         h('a', { class: 'mapa-linea-numero', href: 'tel:' + l.marcar, 'aria-label': `Llamar a ${l.nombre}: ${l.numero}` }, l.numero),
         h('p', { class: 'mapa-linea-nombre' }, h('span', { 'aria-hidden': 'true' }, TIPOS[l.tipo].icono + ' '), l.nombre),
         h('p', {}, l.texto, l.extra ? [' ', externo(l.extra[1], l.extra[0])] : null)

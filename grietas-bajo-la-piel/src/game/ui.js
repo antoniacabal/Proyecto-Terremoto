@@ -20,7 +20,7 @@ const btn = (label, dir) => `<button type="button" class="gx-act">${dir === 'lef
 const root = document.querySelector('.gx')
 if (!root) throw new Error('Falta la estructura .gx del juego en narrativa.html')
 const $ = (s) => root.querySelector(s)
-const msg = $('.gx-msg'), needle = $('.gx-needle'), fadeEl = $('.gx-fade'), card = $('.gx-card'), label = $('.gx-label'), hint = $('.gx-breath-hint'), fillPath = $('.gx-fill'), zonePath = $('.gx-zone')
+const whisperEl = $('.gx-whisper'), msg = $('.gx-msg'), needle = $('.gx-needle'), fadeEl = $('.gx-fade'), card = $('.gx-card'), label = $('.gx-label'), hint = $('.gx-breath-hint'), fillPath = $('.gx-fill'), zonePath = $('.gx-zone')
 const isTouch = () => document.body.classList.contains('gx-touch-on')
 
 // 2. Medidor de respiración: el arco verde es TU barra; la franja gris clara marca la zona correcta y la aguja roja el ritmo a seguir
@@ -116,9 +116,9 @@ export const ui = {
         } else zonePath.setAttribute('d', '')
         const k = Math.round(f * 200)
         if (k !== lastFill) { lastFill = k; fillPath.setAttribute('d', f > 0.005 ? `M ${pt(120, 0)} A 120 120 0 0 1 ${pt(120, Math.min(f, 0.999))}` : '') }
-        const p = runtime.prompt || '', long = p.length > 16 // frases cortas en el rótulo ("Inhala"); las largas van en el mensaje de arriba
-        label.textContent = long || !p ? 'Respirar' : p
-        if (long && p !== lastPrompt) msg.textContent = p
+        const p = runtime.prompt || '', long = p.length > 16 // el rótulo dice qué hacer (Inhalar / Sostener / Exhalar); la frase completa va en el mensaje de arriba
+        label.textContent = runtime.label || (long || !p ? 'Respirar' : p)
+        if ((long || runtime.label) && p && p !== lastPrompt) msg.textContent = p
         lastPrompt = p
         // qué hacer con el clic en este momento: mantener (inhalar / retener) o soltar (exhalar / pausa)
         const h = step || !runtime.action ? '' : runtime.action === 'hold'
@@ -127,6 +127,14 @@ export const ui = {
         if (h !== lastHint) { lastHint = h; hint.textContent = h; hint.dataset.action = runtime.action }
     },
     fade(o, d = 1, cb) { gsap.to(fadeEl, { opacity: o, duration: d, onComplete: cb }) },
+    flash(cb) { // destello blanco que se apaga a negro (el golpe del sismo)
+        gsap.killTweensOf(fadeEl); gsap.set(fadeEl, { opacity: 1, backgroundColor: '#e4ffff' })
+        gsap.to(fadeEl, { backgroundColor: '#000000', duration: 1.4, ease: 'power2.in', onComplete: cb })
+    },
+    whisper(lines, cb) { // frases sueltas sobre la pantalla negra, una tras otra
+        const tl = gsap.timeline({ onComplete: () => { whisperEl.textContent = ''; cb?.() } })
+        lines.forEach(l => tl.call(() => { whisperEl.textContent = l }).to(whisperEl, { opacity: 1, duration: 1.1 }).to(whisperEl, { opacity: 0, duration: 1.1 }, '+=1.4'))
+    },
     // opts: { type: true → el texto se escribe letra por letra · onContinue → muestra el botón "Continuar" }
     card(title, text = '', opts = {}) {
         cardT.stop()

@@ -225,7 +225,9 @@ export const LUGARES = [
     }
 ]
 
-// Líneas que se pueden llamar desde cualquier lugar (no van en el mapa, van debajo)
+// Líneas que se pueden llamar desde cualquier lugar (no van en el mapa, van debajo).
+// Se llenan por filas: van en el orden de lectura para que, con 4 columnas, cada columna quede de un solo color:
+// salud mental (azul) · emergencias (naranja) · socorro y servicios (franja verde) · desastres (amarillo)
 export const LINEAS = [
     {
         tipo: 'apoyo', numero: '106', marcar: '106', nombre: 'Línea 106 · salud mental de Cali',
@@ -233,15 +235,15 @@ export const LINEAS = [
         extra: ['WhatsApp', 'https://wa.me/573162458423'],
         fuente: 'https://www.cali.gov.co/salud/publicaciones/191550/la-linea-106-atendio-mas-de-13000-casos-relacionados-con-salud-mental/'
     },
+    { tipo: 'emergencia', numero: '123', marcar: '123', nombre: 'Número Único de Emergencias', texto: 'Para cualquier emergencia en Colombia.' },
+    { tipo: 'emergencia', franja: 'verde', numero: '132', marcar: '132', nombre: 'Cruz Roja', texto: 'Emergencias y apoyo psicosocial.', fuente: 'https://www.cali.gov.co/gestiondelriesgo/publicaciones/170386/como-acudir-a-los-organismos-de-socorro-de-la-ciudad/' },
+    { tipo: 'desastres', numero: '144', marcar: '144', nombre: 'Defensa Civil', texto: 'Prevención y atención de desastres.', fuente: 'https://www.cali.gov.co/gestiondelriesgo/publicaciones/170386/como-acudir-a-los-organismos-de-socorro-de-la-ciudad/' },
     {
         tipo: 'apoyo', numero: '192 · opción 4', marcar: '192', nombre: 'Línea nacional de salud mental',
         texto: 'Ministerio de Salud. 24 horas, gratis desde cualquier operador.',
         fuente: 'https://www.minsalud.gov.co/English/Paginas/Ministry-of-Health,-Committed-to-Colombians%E2%80%99-Mental-Health-.aspx'
     },
-    { tipo: 'emergencia', numero: '123', marcar: '123', nombre: 'Número Único de Emergencias', texto: 'Para cualquier emergencia en Colombia.' },
     { tipo: 'emergencia', numero: '119', marcar: '119', nombre: 'Bomberos', texto: '24 horas, gratis.', fuente: 'https://bomberoscali.org/' },
-    { tipo: 'emergencia', numero: '132', marcar: '132', nombre: 'Cruz Roja', texto: 'Emergencias y apoyo psicosocial.', fuente: 'https://www.cali.gov.co/gestiondelriesgo/publicaciones/170386/como-acudir-a-los-organismos-de-socorro-de-la-ciudad/' },
-    { tipo: 'desastres', numero: '144', marcar: '144', nombre: 'Defensa Civil', texto: 'Prevención y atención de desastres.', fuente: 'https://www.cali.gov.co/gestiondelriesgo/publicaciones/170386/como-acudir-a-los-organismos-de-socorro-de-la-ciudad/' },
-    { tipo: 'emergencia', numero: '164', marcar: '164', nombre: 'Fugas de gas', texto: 'Olor a gas, fugas o daños en la red de gas natural. Gratis, 24 horas.', fuente: 'https://www.elpais.com.co/cali/gases-de-occidente-informo-fechas-y-zonas-de-reconexion-en-cali-atencion-a-recomendaciones-de-seguridad-0438.html' },
+    { tipo: 'emergencia', franja: 'verde', numero: '164', marcar: '164', nombre: 'Fugas de gas', texto: 'Olor a gas, fugas o daños en la red de gas natural. Gratis, 24 horas.', fuente: 'https://www.elpais.com.co/cali/gases-de-occidente-informo-fechas-y-zonas-de-reconexion-en-cali-atencion-a-recomendaciones-de-seguridad-0438.html' },
     { tipo: 'desastres', numero: '177 · opción 6', marcar: '177', nombre: 'Emcali · daños en servicios públicos', texto: 'Reporta daños de agua, alcantarillado o energía (por ejemplo, después de un sismo). Gratis, 24 horas.', fuente: 'https://selectra.com.co/empresas/emcali/reportar-danos' }
 ]

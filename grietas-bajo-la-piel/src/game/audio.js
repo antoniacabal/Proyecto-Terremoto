@@ -89,6 +89,13 @@ export const audio = {
         bellT -= dt // campanitas de la música tranquila (solo con poca ansiedad y sin pista definitiva)
         if (bellT <= 0) { bellT = 2.2 + Math.random() * 2.6; if (ctx && musicOn && !CALM_MUSIC_FILE && anxiety < 0.45) bell() }
     },
+    ring(dur = 4) { // pitido en los oídos después del golpe del sismo
+        if (!ctx || !fxOn) return
+        const o = ctx.createOscillator(), g = ctx.createGain(), t = ctx.currentTime
+        o.type = 'sine'; o.frequency.value = 3100
+        g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.025, t + 0.15); g.gain.exponentialRampToValueAtTime(0.0001, t + dur)
+        o.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t + dur)
+    },
     breathCue(phase) { blip(300 + (phase % 4) * 40, 0.4, 0.06) },
     result(ok) { blip(ok ? 523 : 140, 0.5, 0.1, ok ? 'sine' : 'square') }
 }
