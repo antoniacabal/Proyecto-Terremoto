@@ -16,7 +16,7 @@
 */
 
 /* 0. Base: contenedor del juego, colores y viñeta de ansiedad */
-.gx{position:fixed;inset:0;pointer-events:none;font-family:'Outfit',sans-serif;color:#E4FFFF;z-index:5}
+.gx{position:fixed;inset:0;pointer-events:none;font-family:'Outfit',sans-serif;color:#E4FFFF;z-index:5;user-select:none;-webkit-user-select:none} /* el texto del juego (diálogos, tarjetas, mensajes) no se puede seleccionar con clics o doble clic */
 .gx>*{position:absolute}
 .gx p,.gx h2,.gx h3,.gx li{color:inherit} /* style.css pinta los textos con --color-texto (oscuro): aquí heredan el color claro del juego */
 .gx-vignette{inset:0;opacity:0;background:radial-gradient(ellipse at center,transparent 35%,rgba(0,0,0,.95) 100%)}

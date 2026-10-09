@@ -59,7 +59,7 @@ const current = () => !up ? 'cama' : !dressed ? 'armario' : pending().length ? '
 
 function startRoutine(post) {
     resetProps(); resetBreakfast(); setHighlight(false)
-    up = dressed = down = momDone = ate = out = arrived = busy = busAsked = busForced = busDone = false; got.clear(); resetScare()
+    up = dressed = down = momDone = ate = out = arrived = busy = busAsked = busForced = busDone = false; got.clear(); resetScare(); player.setBackpack(false)
     runtime.postQuake = post; runtime.envProgress = post ? 0 : 1; runtime.anxiety = post ? 0.08 : 0; runtime.stress = 0
     setSpace('HOUSE'); runtime.nextCrisis = C.first; player.lieDown(); CONFIG.camera.x = W.houseCenterX; CONFIG.camera.z = 0
     showTask()
@@ -217,7 +217,7 @@ function interact() {
     if (c === 'items') { // cualquier objeto pendiente, en el orden que quieras: se recoge el más cercano
         const [id, d] = pending().map(i => [i, dist(i)]).sort((x, y) => x[1] - y[1])[0]
         if (d > CONFIG.player.reach) return ui.say('Acércate a uno de tus objetos.')
-        props[id].mesh.visible = false; got.add(id); return showTask()
+        props[id].mesh.visible = false; got.add(id); if (id === 'maleta') player.setBackpack(true); return showTask() // la maleta pasa a la espalda
     }
     if (dist(c) > (c === 'mama' ? 2.4 : CONFIG.player.reach)) return ui.say('Acércate un poco más.')
     if (c === 'armario') return dress()
@@ -363,7 +363,7 @@ const crisisMult = () => Math.min(2.5, 1 + npcState.near * 0.35 + runtime.anxiet
 let lastState = '', stateT = 0
 const blockMsg = (t, text) => { if (t - doorMsgT > 2.5) { doorMsgT = t; ui.say(text) } }
 function skipRoom() { // ?debug: lo que faltaba en el cuarto se da por hecho
-    up = dressed = true; ITEMS.forEach(i => { got.add(i); props[i].mesh.visible = false }); props.armario.mesh.userData.outline.visible = false
+    up = dressed = true; ITEMS.forEach(i => { got.add(i); props[i].mesh.visible = false }); player.setBackpack(true); props.armario.mesh.userData.outline.visible = false
 }
 function doors(t) { // puertas: cruzar el marco cambia de espacio si ya hiciste lo necesario; si no, no te deja pasar (en ?debug siempre se puede)
     if (runtime.space === 'HOUSE' && up && player.z > 3.2 && Math.abs(player.x + 5) < 0.95) {

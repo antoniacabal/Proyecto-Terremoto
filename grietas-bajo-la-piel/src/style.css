@@ -379,6 +379,8 @@ html.sin-scroll, body.sin-scroll
 body.pagina-narrativa
 {
     background: var(--color-escena);
+    user-select: none; /* en el juego nada se selecciona: hacer clic o doble clic para respirar no pinta el texto */
+    -webkit-user-select: none;
 }
 
 .webgl--narrativa
@@ -1792,6 +1794,7 @@ html.modal-abierto
     body.pagina-respiracion .titulo { color: color-mix(in srgb, var(--color-terceario) 55%, black); }          /* salvia oscuro: se lee bien sobre el fondo claro */
     body.pagina-respiracion .tarjeta-numero { background: color-mix(in srgb, var(--color-terceario) 45%, white); } /* los números de los pasos siguen la paleta de la página */
     body.pagina-respiracion .aviso li::marker { color: var(--color-terceario); } /* viñetas de "¿Cuándo consultar a un profesional?" (antes naranjas) */
+    body.pagina-respiracion #titulo-pagina { color: color-mix(in srgb, var(--color-terceario) 8%, white); text-shadow: 0 2px 14px color-mix(in srgb, color-mix(in srgb, var(--color-terceario) 45%, black) 70%, transparent); } /* blanco salvia con sombra difuminada, como el título de prevención */
 
     /* 5.13 Organización Mundial de la Salud (respiracion-consciente.html): azul de la OMS sobre blanco */
     .seccion-oms

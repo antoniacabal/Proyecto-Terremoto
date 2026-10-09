@@ -17,7 +17,16 @@ const bodyMat = new THREE.MeshStandardMaterial({ color: 0x8296b7 }) // la ropa n
 const body = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.4, 1.2, 12), bodyMat)
 const head = new THREE.Mesh(new THREE.SphereGeometry(0.35, 16, 12), new THREE.MeshStandardMaterial({ color: 0xe3d0b5 }))
 body.position.y = 0.6; head.position.y = 1.5
-group.add(body, head); scene.add(group)
+// Maleta a la espalda: aparece cuando la recoges en el cuarto (el frente del personaje es su +z, la espalda su -z)
+const backpack = new THREE.Group(), bagMat = new THREE.MeshStandardMaterial({ color: 0x799180 })
+{
+    const b = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.6, 0.24), bagMat); b.position.set(0, 0.82, -0.44)
+    const pocket = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.24, 0.08), bagMat); pocket.position.set(0, 0.66, -0.58)
+    const strapMat = new THREE.MeshStandardMaterial({ color: 0x4f5f54 }) // correas sobre los hombros
+    ;[-0.16, 0.16].forEach(x => { const s = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.07, 0.62), strapMat); s.position.set(x, 1.12, -0.06); backpack.add(s) })
+    backpack.add(b, pocket); backpack.visible = false
+}
+group.add(body, head, backpack); scene.add(group)
 group.position.set(CONFIG.player.startX, 0, CONFIG.player.startZ)
 
 // 2. Poses: acostado sobre la cama (la cama está contra la pared del fondo; la cabeza va hacia la almohada)
@@ -34,6 +43,7 @@ let lying = false, sitting = false
 export const player = {
     group,
     setMode(m) { mode = m },
+    setBackpack(v) { backpack.visible = v }, // maleta a la espalda
     lieDown() { lying = true; sitting = false; group.rotation.set(-Math.PI / 2, 0, 0); group.position.set(LIE.x, LIE.y, LIE.z) },
     sit(s) { sitting = true; group.rotation.set(0, s.face, 0); group.position.set(s.x, 0.45, s.z) },
     unsit() { if (!sitting) return; sitting = false; group.position.set(group.position.x, 0, 0) },
