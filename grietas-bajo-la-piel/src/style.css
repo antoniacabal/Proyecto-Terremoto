@@ -21,6 +21,8 @@
         5.8 Avisos
         5.9 Linea de ayuda
         5.10 Advertencia
+        5.11 Brigada Topos
+        5.12 Página de respiración (verde)
     6. Footer
     7. Reactive
 
@@ -1684,6 +1686,102 @@ html.modal-abierto
 
     .advertencia-accion--volver:hover svg { transform: translateX(-4px); }
     .advertencia-accion--seguir:hover svg { transform: translateX(4px); }
+
+    /* 5.11 Brigada Topos (herramientas-prevencion.html): naranja de los uniformes de la brigada y gris carbón */
+    .seccion-topos
+    {
+        --topos-naranja: #E8641C;
+        --topos-carbon: #1F1F22;
+        position: relative;
+        color: var(--color-soporte-claro);
+        background: var(--topos-carbon);
+        box-shadow: 0 0 0 100vmax var(--topos-carbon); /* fondo de borde a borde aunque el artículo tenga margen lateral */
+        clip-path: inset(0 -100vmax);
+        border-top: 8px solid var(--topos-naranja);
+    }
+
+    .seccion-topos .recurso-nota { color: var(--color-soporte-claro); }
+
+    .topos-cabecera
+    {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+    }
+
+    .topos-logo
+    {
+        width: clamp(80px, 12vw, 120px);
+        height: auto;
+        padding: 14px;
+        border-radius: 50%;
+        background: var(--topos-naranja); /* el logo es blanco: va sobre el naranja de la brigada */
+        flex-shrink: 0;
+    }
+
+    .topos-etiqueta
+    {
+        font-family: "Outfit", sans-serif;
+        font-size: 0.85rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--topos-naranja);
+    }
+
+    .seccion-topos .topos-titulo { color: var(--color-soporte-claro); }
+
+    .tarjeta--topos
+    {
+        border-color: var(--topos-naranja);
+        background: #2B2B2F;
+        color: var(--color-soporte-claro);
+    }
+
+    .tarjeta--topos::before { background: var(--topos-naranja); }
+    .tarjeta--topos .subtitulo { color: var(--topos-naranja); }
+    .tarjeta--topos p { color: var(--color-soporte-claro); }
+
+    .topos-acciones
+    {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .topos-boton
+    {
+        display: inline-block;
+        padding: 10px 22px;
+        border: 2px solid var(--topos-naranja);
+        border-radius: 999px;
+        background: var(--topos-naranja);
+        color: #fff;
+        font-family: "Outfit", sans-serif;
+        font-weight: 600;
+        text-decoration: none;
+        transition: background 0.25s ease, color 0.25s ease;
+    }
+
+    .topos-boton--claro { background: transparent; color: var(--topos-naranja); }
+    .topos-boton:hover { background: #fff; color: var(--topos-carbon); border-color: #fff; }
+    .topos-boton:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+
+    @media (max-width: 768px)
+    {
+        .topos-cabecera { flex-direction: column; align-items: flex-start; }
+    }
+
+    /* 5.12 Página de técnicas de respiración: verdes suaves, más cercanos a un espacio de terapia */
+    :root:has(body.pagina-respiracion)
+    {
+        --color-acento: #DCEBDD;          /* fondo: verde menta muy claro */
+        --color-tarjeta-sombra: #8DBE96;  /* sombra de tarjetas y avisos */
+        --color-scroll-pista: #C3DCC6;
+        --color-scroll-pulgar: #4F8A63;
+    }
+
+    body.pagina-respiracion .tarjeta { background: #F4FBF4; }
+    body.pagina-respiracion .titulo { color: #2F5E43; }
 
 /* 6. Footer ----------------- */
 .footer {
