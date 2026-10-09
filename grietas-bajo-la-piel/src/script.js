@@ -242,6 +242,7 @@ async function iniciarMuestra() {
     const pistas = contenedor.querySelector('.muestra-pistas')
     const leer = (clave) => { try { return localStorage.getItem('grietas-pista-' + clave) === 'usada' } catch (e) { return false } }
     const guardar = (clave) => { try { localStorage.setItem('grietas-pista-' + clave, 'usada') } catch (e) {} }
+    if (new URLSearchParams(location.search).has('pistas')) { try { localStorage.removeItem('grietas-pista-giro'); localStorage.removeItem('grietas-pista-zoom') } catch (e) {} } // index.html?pistas: las pistas vuelven a salir (para probar o presentar)
     const usadas = { giro: leer('giro'), zoom: leer('zoom') }
     let pistasVisibles = false
 
