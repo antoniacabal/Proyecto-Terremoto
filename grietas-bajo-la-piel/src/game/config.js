@@ -2,17 +2,17 @@
 const DEBUG = new URLSearchParams(location.search).has('debug') // ?debug: modo de pruebas (sin narrativa automática)
 export const CONFIG = {
     maxFailures: 4, // dificultad fija (antes "casual")
-    breathing: { rate: 0.25, tol: 0.2, pass: 0.55 }, // rate: velocidad de la barra en las retenciones (al inhalar/exhalar va al ritmo de la aguja)
+    breathing: { rate: 0.25, tol: 0.2, pass: 0.75, grace: 0.4 }, // rate: velocidad de la barra en las retenciones · tol: ancho de la franja gris (solo visual) · pass: % del tiempo con el timing correcto para pasar · grace: margen al empezar cada fase (s)
     crisis: { first: 8, min: 8, max: 18, startAnxiety: 0.55, baseline: 0.1, drift: 0.007, driftMax: 0.25 }, // segundos / ansiedad
     anxiety: { failPenalty: 0.1, shakeMax: 0.12, blurMax: 3, satMin: 0.5, postQuakeSat: 0.85, vignetteMax: 0.85, distort: 1 }, // distort: cuánto se deforma la ciudad con la ansiedad (0 = nada)
     camera: { azimuth: 45, elevation: 35.264, distance: 24, zoom: 1, view: 12, x: -4, y: 1, z: 0, follow: 3, lead: 3 }, // follow: suavidad · lead: cuánto mira por delante del personaje en la calle
     env: { light: 1, successGain: 0.15 },
-    earth: { patches: 3, need: 4, timeout: 40, relief: 0.1 }, npcs: { street: 22, bus: 3 }, // minijuego y NPCs
+    earth: { patches: 3, need: 3, timeout: 14, drain: 0.5, relief: 0.15 }, npcs: { street: 22, bus: 3 }, // earthing: s sobre el pasto · tiempo límite real · cuánto se pierde por s fuera del pasto · NPCs
     player: { speed: 3.5, startX: -1.6, startZ: 0, reach: 1.8, screenRelative: true },
     bus: { calmRide: 7, time: 32, traumaMin: 8, traumaMax: 12, crisisMin: 7, crisisMax: 12, startAnxiety: 0.4, baseline: 0.25, drift: 0.014, driftMax: 0.7 }, // viaje en el MIO: mucha más ansiedad · trauma = a los cuántos s el frenón te obliga a bajar (después del sismo)
-    street: { endless: 28, from: 0.45, full: 0.85, slow: 0.55 }, // calle eterna: cuánto se aleja la universidad, desde/hasta qué ansiedad y cuánto se frena el paso
+    street: { endless: 28, from: 0.45, full: 0.85, slow: 0.55, scareChance: 0.25, scareGap: 60 }, // calle eterna: cuánto se aleja la universidad, desde/hasta qué ansiedad y cuánto se frena el paso · susto del edificio: probabilidad por crisis y segundos mínimos entre sustos
     world: { houseCenterX: -4.2, homeX: -30, busX: 20, turn1X: 56, turn2Z: -30, uniX: 100, uniGateZ: -66, busInteriorX: 106, busStartX: 101.4 }, // la calle va en Z: derecha → arriba (turn1X) → derecha (turn2Z) → arriba hasta la universidad
     exitUrl: 'index.html'
 }
 export const STATES = ['INTRO', 'EXPLORATION', 'QUAKE', 'ANNOUNCEMENT', 'ANXIETY', 'CHOICE', 'BREATHING', 'CALM', 'FAILURE', 'ARRIVAL', 'ENDING_GOOD', 'ENDING_BAD']
-export const runtime = { state: 'INTRO', sandbox: DEBUG, anxiety: 0, envProgress: 1, quake: 0, postQuake: false, taskIndex: 0, nextCrisis: 0, successful: 0, failures: 0, breathProgress: 0, stress: 0, techIndex: 0, techId: '', techName: '', techHelp: '', prompt: '', action: '', level: 0, target: 0, stepFill: 0, phase: '', space: 'HOUSE', rideLeft: 0, paused: false, busMoving: false, grassGreen: false }
+export const runtime = { state: 'INTRO', sandbox: DEBUG, anxiety: 0, envProgress: 1, quake: 0, postQuake: false, taskIndex: 0, nextCrisis: 0, successful: 0, failures: 0, glitch: 0, breathProgress: 0, stress: 0, techIndex: 0, techId: '', techName: '', techHelp: '', prompt: '', action: '', level: 0, target: 0, stepFill: 0, phase: '', space: 'HOUSE', rideLeft: 0, paused: false, busMoving: false, grassGreen: false }

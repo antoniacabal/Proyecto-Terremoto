@@ -336,6 +336,16 @@ html, body{
     overflow-x: hidden;
 }
 
+html
+{
+    overscroll-behavior: none; /* sin el "rebote" de Mac / Safari. Solo en html: si se pone también en body, la rueda del mouse deja de bajar la página (body no puede pasarle el scroll a la ventana) */
+}
+
+html
+{
+    background: var(--color-soporte-oscuro); /* si algún navegador viejo igual rebota, lo que asoma es del color del header y el footer */
+}
+
     /* 4.1 Scroll */
     @property --scroll-pista
     {
@@ -379,6 +389,8 @@ html.sin-scroll, body.sin-scroll
 body.pagina-narrativa
 {
     background: var(--color-escena);
+    user-select: none; /* en el juego nada se selecciona: hacer clic o doble clic para respirar no pinta el texto */
+    -webkit-user-select: none;
 }
 
 .webgl--narrativa
@@ -1792,6 +1804,7 @@ html.modal-abierto
     body.pagina-respiracion .titulo { color: color-mix(in srgb, var(--color-terceario) 55%, black); }          /* salvia oscuro: se lee bien sobre el fondo claro */
     body.pagina-respiracion .tarjeta-numero { background: color-mix(in srgb, var(--color-terceario) 45%, white); } /* los números de los pasos siguen la paleta de la página */
     body.pagina-respiracion .aviso li::marker { color: var(--color-terceario); } /* viñetas de "¿Cuándo consultar a un profesional?" (antes naranjas) */
+    body.pagina-respiracion #titulo-pagina { color: color-mix(in srgb, var(--color-terceario) 8%, white); text-shadow: 0 2px 14px color-mix(in srgb, color-mix(in srgb, var(--color-terceario) 45%, black) 70%, transparent); } /* blanco salvia con sombra difuminada, como el título de prevención */
 
     /* 5.13 Organización Mundial de la Salud (respiracion-consciente.html): azul de la OMS sobre blanco */
     .seccion-oms
@@ -1803,6 +1816,7 @@ html.modal-abierto
         box-shadow: 0 0 0 100vmax var(--oms-fondo); /* fondo de borde a borde aunque el artículo tenga margen lateral */
         clip-path: inset(0 -100vmax);
         border-top: 8px solid var(--oms-azul);
+        border-bottom: 8px solid var(--oms-azul); /* raya azul antes del footer, como la de Topos en la página de prevención */
         color: var(--oms-azul-oscuro);
     }
 
@@ -1886,6 +1900,7 @@ html.modal-abierto
     body.pagina-prevencion main > article:not(.seccion-topos) .titulo { color: #A3150F; } /* rojo oscuro: se lee bien sobre el fondo claro */
     body.pagina-prevencion .tarjeta-numero { background: #F2A59C; }
     body.pagina-prevencion .telefono-numero { color: #B3140F; }
+    body.pagina-prevencion #titulo-pagina { color: #FFF3EF; text-shadow: 0 2px 14px rgba(90, 12, 8, 0.55); } /* blanco cálido con sombra roja: el celeste general no combinaba con esta paleta */
 
 /* 6. Footer ----------------- */
 .footer {
@@ -1986,14 +2001,6 @@ html.modal-abierto
     }
 
     /* 4.1 Scroll */
-    @media (prefers-reduced-motion: no-preference)
-    {
-        html
-        {
-            scroll-behavior: smooth;
-        }
-    }
-
     @media (prefers-reduced-motion: reduce)
     {
         html{ transition: none; }

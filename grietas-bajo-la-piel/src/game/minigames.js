@@ -19,14 +19,15 @@ const earth = {
     update(dt) {
         const E = CONFIG.earth
         const on = onGrass(player.x, player.z)
-        if (on || onT > 0) eT += dt // el tiempo límite empieza a correr al pisar el pasto por primera vez: caminar hasta él no cuenta
-        else eT += dt * 0.25
+        eT += dt // tiempo límite en segundos reales (se ve en el reloj del medidor)
         arrow.visible = !on
         if (!on) { const [tx, tz] = nearestGrass(player.x, player.z); arrow.position.set(player.x, 2.9, player.z); arrow.rotation.y = Math.atan2(tx - player.x, tz - player.z) } // pasto más cercano (sirve en las dos calles)
         if (on) { onT += dt; runtime.anxiety = Math.max(0, runtime.anxiety - E.relief * dt) } // solo baja sobre el pasto
-        if (onT >= E.need) return { prompt: '', fill: 1, done: true }
-        if (eT > E.timeout) return { prompt: '', fill: 0, done: false }
-        return { prompt: on ? `Respira lento... ${Math.ceil(E.need - onT)} s` : 'Camina hasta el pasto, a un lado de la calle', label: on ? 'Respira lento' : 'Busca el pasto', fill: onT / E.need }
+        else onT = Math.max(0, onT - E.drain * dt) // si sales del pasto, lo avanzado se va perdiendo
+        const timeLeft = Math.max(0, E.timeout - eT)
+        if (onT >= E.need) return { prompt: '', fill: 1, done: true, timeLeft }
+        if (eT >= E.timeout) return { prompt: '', fill: onT / E.need, done: false, timeLeft: 0 } // se acabó el tiempo: el minijuego se pierde
+        return { prompt: on ? `Respira lento... ${Math.ceil(E.need - onT)} s` : 'Camina hasta el pasto, a un lado de la calle', label: on ? 'Respira lento' : 'Busca el pasto', fill: onT / E.need, timeLeft }
     }
 }
 

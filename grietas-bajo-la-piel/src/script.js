@@ -1,7 +1,7 @@
 /* Indice
 
     0. Imports
-    1. Menu desplegable
+    1. Menu desplegable (y desplazamiento suave a las secciones)
     2. Ventana de advertencia (index.html)
     3. Muestra 3D del juego (index.html)
         3.1 Canvas
@@ -56,6 +56,23 @@ function iniciarMenu() {
     // Cerrar al elegir un enlace
     panel.addEventListener('click', function (e) {
         if (e.target.closest('a')) abrir(false);
+    });
+}
+
+// Desplazamiento suave hacia las secciones de la misma página (antes era scroll-behavior: smooth en el CSS,
+// pero junto con overscroll-behavior en html la rueda del mouse dejaba de bajar la página en Chrome)
+function iniciarDesplazamientoSuave() {
+    var sinMovimiento = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    document.addEventListener('click', function (e) {
+        var enlace = e.target.closest('a[href*="#"]');
+        if (!enlace || enlace.target === '_blank') return;
+        var url = new URL(enlace.href, location.href);
+        if (url.pathname !== location.pathname || !url.hash) return; // solo enlaces a esta misma página
+        var destino = document.getElementById(decodeURIComponent(url.hash.slice(1)));
+        if (!destino) return;
+        e.preventDefault();
+        destino.scrollIntoView({ behavior: sinMovimiento ? 'auto' : 'smooth' });
+        history.pushState(null, '', url.hash);
     });
 }
 
@@ -237,12 +254,10 @@ async function iniciarMuestra() {
 
     canvas.style.cursor = 'grab'
 
-    // Pistas de giro y zoom: aparecen después de un rato con la muestra a la vista y, cuando
-    // el usuario usa ese control, se van y no vuelven (se recuerda en el navegador)
+    // Pistas de giro y zoom: aparecen en cada visita, después de un rato con la muestra a la vista,
+    // y cada una se va cuando el usuario usa ese control (al volver a la página aparecen de nuevo)
     const pistas = contenedor.querySelector('.muestra-pistas')
-    const leer = (clave) => { try { return localStorage.getItem('grietas-pista-' + clave) === 'usada' } catch (e) { return false } }
-    const guardar = (clave) => { try { localStorage.setItem('grietas-pista-' + clave, 'usada') } catch (e) {} }
-    const usadas = { giro: leer('giro'), zoom: leer('zoom') }
+    const usadas = { giro: false, zoom: false }
     let pistasVisibles = false
 
     const actualizarPistas = () =>
@@ -256,11 +271,10 @@ async function iniciarMuestra() {
     {
         if (usadas[clave]) return
         usadas[clave] = true
-        guardar(clave)
         actualizarPistas()
     }
 
-    if (pistas && !(usadas.giro && usadas.zoom))
+    if (pistas)
     {
         const aLaVista = () => { const caja = contenedor.getBoundingClientRect(); return caja.bottom > window.innerHeight * 0.3 && caja.top < window.innerHeight * 0.7 }
         const mostrar = () =>
@@ -270,7 +284,15 @@ async function iniciarMuestra() {
             actualizarPistas()
             window.removeEventListener('scroll', mostrar)
         }
-        setTimeout(() => { mostrar(); if (!pistasVisibles) window.addEventListener('scroll', mostrar, { passive: true }) }, 4000) // si la muestra no está a la vista, espera a que vuelvan a ella
+        const programar = () => setTimeout(() => { mostrar(); if (!pistasVisibles) window.addEventListener('scroll', mostrar, { passive: true }) }, 4000) // si la muestra no está a la vista, espera a que vuelvan a ella
+        programar()
+        window.addEventListener('pageshow', (e) => // al volver con "atrás" el navegador restaura la página tal cual: las pistas vuelven a empezar
+        {
+            if (!e.persisted) return
+            usadas.giro = usadas.zoom = pistasVisibles = false
+            actualizarPistas()
+            programar()
+        })
     }
 
     // Giro: el ángulo cambió entre que se agarró y se soltó la muestra
@@ -315,10 +337,12 @@ async function iniciarMuestra() {
         camera.bottom = -vista / 2
         camera.updateProjectionMatrix()
 
-        // Actualizar renderizador
+        // Actualizar renderizador (también la resolución: si cambia el zoom del navegador o la pantalla, no queda pixelado)
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
         renderer.setSize(sizes.width, sizes.height, false)
     })
     resizeObserver.observe(contenedor)
+    window.addEventListener('resize', () => renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))) // el zoom del navegador puede no cambiar el tamaño del contenedor
 
     // 3.9 Animación -----------------
     const clock = new THREE.Clock()
@@ -396,6 +420,7 @@ async function iniciarMapa() {
 
 // 7. Inicio -----------------
 iniciarMenu()
+iniciarDesplazamientoSuave()
 iniciarMapa()
 iniciarAdvertencia()
 iniciarScroll()
