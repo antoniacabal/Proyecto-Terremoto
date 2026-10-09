@@ -20,7 +20,7 @@ const btn = (label, dir) => `<button type="button" class="gx-act">${dir === 'lef
 const root = document.querySelector('.gx')
 if (!root) throw new Error('Falta la estructura .gx del juego en narrativa.html')
 const $ = (s) => root.querySelector(s)
-const whisperEl = $('.gx-whisper'), msg = $('.gx-msg'), needle = $('.gx-needle'), fadeEl = $('.gx-fade'), card = $('.gx-card'), label = $('.gx-label'), hint = $('.gx-breath-hint'), fillPath = $('.gx-fill'), zonePath = $('.gx-zone')
+const timerEl = $('.gx-timer'), whisperEl = $('.gx-whisper'), msg = $('.gx-msg'), needle = $('.gx-needle'), fadeEl = $('.gx-fade'), card = $('.gx-card'), label = $('.gx-label'), hint = $('.gx-breath-hint'), fillPath = $('.gx-fill'), zonePath = $('.gx-zone')
 const isTouch = () => document.body.classList.contains('gx-touch-on')
 
 // 2. Medidor de respiración: el arco verde es TU barra; la franja gris clara marca la zona correcta y la aguja roja el ritmo a seguir
@@ -116,6 +116,8 @@ export const ui = {
         } else zonePath.setAttribute('d', '')
         const k = Math.round(f * 200)
         if (k !== lastFill) { lastFill = k; fillPath.setAttribute('d', f > 0.005 ? `M ${pt(120, 0)} A 120 120 0 0 1 ${pt(120, Math.min(f, 0.999))}` : '') }
+        const s = Math.ceil(runtime.timeLeft || 0), tt = `⏱ ${s} s` // reloj del minijuego: se pone rojo y late en los últimos 5 s
+        if (timerEl.textContent !== tt) { timerEl.textContent = tt; timerEl.classList.toggle('gx-timer--poco', s <= 5) }
         const p = runtime.prompt || '', long = p.length > 16 // el rótulo dice qué hacer (Inhalar / Sostener / Exhalar); la frase completa va en el mensaje de arriba
         label.textContent = runtime.label || (long || !p ? 'Respirar' : p)
         if ((long || runtime.label) && p && p !== lastPrompt) msg.textContent = p

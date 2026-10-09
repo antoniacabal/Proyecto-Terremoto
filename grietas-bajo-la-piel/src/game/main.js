@@ -92,13 +92,14 @@ const zoomToPlayer = (cb) => { focus = 'player'; gsap.to(CONFIG.camera, { zoom: 
 const resetFocus = () => { focus = null; gsap.killTweensOf(CONFIG.camera); CONFIG.camera.zoom = 1 }
 
 // Susto en la calle (después del sismo): un edificio cercano empieza a temblar y a inclinarse, y eso dispara la crisis
-let scared = null, scareCalm = false
-function scare() {
+let scared = null, scareCalm = false, lastScare = -999 // lastScare: cuándo fue el último susto (hay un mínimo de tiempo entre uno y otro)
+function scare(t) {
+    if (t - lastScare < CONFIG.street.scareGap) return false
     const e = scareBuilding(player.x, player.z); if (!e) return false
-    scared = e; busy = true; player.setMode('stop'); ui.say('Ese edificio... ¿se está moviendo?')
-    gsap.to(e, { sh: 1, duration: 0.5 }); gsap.to(e, { tilt: 0.2, sink: 0.4, duration: 2.2, delay: 0.5, ease: 'power2.in' })
-    gsap.to({}, { duration: 0.22, repeat: 10, onRepeat: () => !runtime.paused && audio.blip(40 + Math.random() * 25, 0.25, 0.12, 'sawtooth') })
-    gsap.to(runtime, { anxiety: Math.max(runtime.anxiety, 0.65), duration: 2 })
+    scared = e; lastScare = t; busy = true; player.setMode('stop'); ui.say('Ese edificio... ¿se está moviendo?')
+    gsap.to(e, { sh: 0.45, duration: 0.5 }); gsap.to(e, { tilt: 0.07, sink: 0.12, duration: 2.2, delay: 0.5, ease: 'power2.in' }) // sutil: tiembla y se ladea apenas
+    gsap.to({}, { duration: 0.22, repeat: 8, onRepeat: () => !runtime.paused && audio.blip(40 + Math.random() * 25, 0.25, 0.07, 'sawtooth') })
+    gsap.to(runtime, { anxiety: Math.max(runtime.anxiety, 0.55), duration: 2 })
     gsap.delayedCall(2.8, () => { busy = false; if (runtime.state === 'EXPLORATION') sm.go('ANXIETY') })
     return true
 }
@@ -238,8 +239,8 @@ addEventListener('keydown', (e) => e.code === 'KeyE' && !e.repeat && interact())
 // 7. Explicación de los minijuegos: sale la primera vez que aparece cada tipo (se reinicia al recargar la página)
 const seenTutorials = new Set()
 const TUTORIALS = {
-    hold: ['Inhalar: mantén el clic (o la barra espaciadora) y tu barra verde se llena. En pantalla táctil, mantén el botón E.', 'Sostener: sigue manteniendo el clic; la barra se queda llena.', 'Exhalar: suelta el clic y la barra se vacía al ritmo de la aguja. En la pausa, déjalo suelto.', 'El rótulo debajo del medidor te dice en todo momento qué hacer. Mantén tu barra dentro de la franja gris clara y la crisis pasa.'],
-    earth: ['Camina con WASD o las flechas hasta el pasto que hay a los lados de la calle. La flecha dorada te indica hacia dónde.', 'Quédate sobre el pasto respirando lento.', 'Solo ahí baja tu ansiedad: si sales, deja de bajar.']
+    hold: ['Inhalar: mantén el clic (o la barra espaciadora) y tu barra verde se llena. En pantalla táctil, mantén el botón E.', 'Sostener: sigue manteniendo el clic; la barra se queda llena.', 'Exhalar: suelta el clic y la barra se vacía al ritmo de la aguja. En la pausa, déjalo suelto.', 'El rótulo debajo del medidor te dice en todo momento qué hacer. Mantén tu barra dentro de la franja gris clara y la crisis pasa.', 'El reloj junto al medidor marca cuánto le queda al ejercicio.'],
+    earth: ['Camina con WASD o las flechas hasta el pasto que hay a los lados de la calle. La flecha dorada te indica hacia dónde.', 'Quédate sobre el pasto respirando lento.', 'Solo ahí baja tu ansiedad: si sales, lo avanzado se va perdiendo.', 'Tienes un tiempo límite: mira el reloj junto al medidor. Si se acaba antes de llenar la barra, no lo lograste.']
 }
 
 // 8. Máquina de estados
@@ -389,7 +390,7 @@ function street(t, dt) {
     if (!auto()) { if (atUniversity(player.x, player.z)) blockMsg(t, 'Llegaste a la universidad (modo debug: el final no se activa).'); return }
     if (runtime.anxiety < C.driftMax) runtime.anxiety += C.drift * dt // incomodidad que va creciendo
     if (!busy && !nearUniversity(player.x, player.z) && (runtime.nextCrisis -= dt * crisisMult()) <= 0) { // crisis esporádicas: a veces empiezan con un edificio que parece moverse
-        if (Math.random() < 0.5 && scare()) return
+        if (Math.random() < CONFIG.street.scareChance && scare(t)) return
         return sm.go('ANXIETY')
     }
     if (!arrived && atUniversity(player.x, player.z)) return sm.go('ARRIVAL')

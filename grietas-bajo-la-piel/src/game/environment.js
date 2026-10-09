@@ -281,13 +281,14 @@ box(PATH[1] - PATH[0], 0.06, PATH[3] - PATH[2], HOME_DOOR.x, -0.07, (PATH[2] + P
 
 const curbs = [], stains = []
 SEGS.forEach((s, i) => {
-    const r = segRect(s, 0), a0 = i === 0 ? STREET_X0 : (s.axis === 'x' ? r[0] : r[2]), a1 = s.axis === 'x' ? r[1] : r[3]
+    const R = ROADS[i], [a0, a1] = s.axis === 'x' ? [R[0], R[1]] : [R[2], R[3]] // de punta a punta del asfalto: la esquina exterior también lleva andén
     for (let t = a0 + 0.4; t < a1; t += 1.3) [-1, 1].forEach(side => { // andenes a los dos lados
         const [x, z] = s.axis === 'x' ? [t, s.z0 + side * 3.15] : [s.x0 + side * 3.15, t]
-        if (ROADS.some((o, j) => j !== i && inRect(grow(o, -0.2), x, z)) || inRect(grow(PATH, 0.4), x, z)) return // se abren en las esquinas y frente al caminito
+        if (ROADS.some((o, j) => j !== i && inRect(o, x, z)) || inRect(grow(PATH, 0.4), x, z)) return // se abren donde empieza la otra calle y frente al caminito
+        if (curbs.some(([cx, , cz]) => Math.hypot(cx - x, cz - z) < 0.7)) return // en la esquina interior las dos filas no se montan una sobre otra
         curbs.push(s.axis === 'x' ? [x, 0.05, z] : [x, 0.05, z, 1, 1, 1, Math.PI / 2])
     })
-    const R = ROADS[i]; for (let k = 0; k < s.len * 1.1; k++) stains.push(s.axis === 'x' // manchas del camino
+    for (let k = 0; k < s.len * 1.1; k++) stains.push(s.axis === 'x' // manchas del camino
         ? [rr(Math.max(R[0], STREET_X0) + 1, R[1] - 1), 0.01, rr(s.z0 - 2.6, s.z0 + 2.6), 1, 1, 1, rr(-.2, .2)]
         : [rr(s.x0 - 2.6, s.x0 + 2.6), 0.01, rr(R[2] + 1, R[3] - 1), 1, 1, 1, Math.PI / 2 + rr(-.2, .2)])
 })
@@ -342,7 +343,8 @@ SEGS.slice(1).forEach(s => {
 })
 
 // Vegetación: juncos y flores en el pasto de los lados de la calle y detrás de la valla
-const DECOR = GRASS_STRIPS.map(r => grow(r, -0.4)).concat([[-41, STREET_X0 - 1.5, -12, 12]])
+const CORNERS = ROUTE.slice(1, -1).flatMap(([cx, cz]) => [[1, 1], [1, -1], [-1, 1], [-1, -1]].map(([sx, sz]) => [Math.min(cx + sx * 3.4, cx + sx * 6.5), Math.max(cx + sx * 3.4, cx + sx * 6.5), Math.min(cz + sz * 3.4, cz + sz * 6.5), Math.max(cz + sz * 3.4, cz + sz * 6.5)])) // pasto alrededor de las esquinas (la exterior quedaba pelada)
+const DECOR = GRASS_STRIPS.map(r => grow(r, -0.4)).concat([[-41, STREET_X0 - 1.5, -12, 12]], CORNERS)
 const pick = () => { const a = DECOR[Math.floor(rng() * DECOR.length)]; return [rr(a[0], a[1]), rr(a[2], a[3])] }
 const reeds = []; for (let k = 0; k < 260; k++) { const [x, z] = pick(); for (let j = 0; j < 3; j++) { const sy = rr(0.7, 1.4); reeds.push([x + rr(-.25, .25), -0.15 + 0.45 * sy, z + rr(-.25, .25), 1, sy, 1, 0]) } }
 const reedMesh = scatter(new THREE.ConeGeometry(0.12, 0.9, 5), '#D8C8AE', '#71708A', reeds)
@@ -395,6 +397,37 @@ SEGS.forEach((s, i) => {
 makeLayer('MID', mid)
 makeLayer('INFRA', posts)
 makeLayer('FRONT', row(12, -27, 7, (x, i) => [x, 6.8, 1.2 + (i % 2) * 0.6, 0.8 + (i % 3) * 0.3, 1]))
+
+// Fallas de la ansiedad (después del sismo): copias translúcidas de postes, muros y pedazos de edificio que titilan y
+// saltan de lugar, como si la ciudad no terminara de "cargar". Mientras más ansiedad, más aparecen (ver updateGhosts)
+const ghosts = [], GHOST_COLS = ['#F2C063', '#BF895A', '#D8C8AE', '#A6869B']
+const GHOST_KINDS = [[0.3, 3.5, 0.3], [0.3, 2.6, 0.3], [1.4, 2.4, 0.9], [2.2, 4.5, 1.6], [3.2, 1.2, 0.5]] // poste alto · poste · bloque · pedazo de edificio · muro bajo
+function makeGhost(space, x, z, k) {
+    const [w, h, d] = GHOST_KINDS[k % GHOST_KINDS.length]
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshBasicMaterial({ color: GHOST_COLS[k % GHOST_COLS.length], transparent: true, opacity: 0, depthWrite: false }))
+    m.position.set(x, h / 2 - 0.15, z); m.rotation.y = rr(0, 1) < 0.5 ? 0 : Math.PI / 2; m.visible = false; GROUPS[space].add(m)
+    ghosts.push({ m, space, x, z, h, rank: rr(0.05, 1), on: false, off: [0, 0] }) // rank: a partir de qué ansiedad aparece
+}
+for (let d = 6; d < ROUTE_LEN - 4; d += rr(3, 5.5)) { // a los lados de la calle, sobre el pasto y frente a las casas
+    const [x, z, s] = routePoint(d), side = rr(0, 1) < 0.5 ? -1 : 1, off = side * rr(3.8, 7.5)
+    makeGhost('STREET', s.axis === 'x' ? x + rr(-1, 1) : x + off, s.axis === 'x' ? z + off : z + rr(-1, 1), Math.floor(rr(0, 10)))
+}
+;[[-7.6, -2.6], [-6.2, 2.6], [-2.6, 1.8], [-0.8, -0.4], [-5.2, -2.8], [-3.2, 2.9]].forEach(([x, z], i) => makeGhost('HOUSE', x, z, i))               // cuarto
+;[[HX - 5.6, 0.4], [HX - 1.2, 3.4], [HX + 2.6, -3.4], [HX + 5.6, 3.2], [HX - 6.1, -3.6], [HX + 3.4, 0.2]].forEach(([x, z], i) => makeGhost('HOME', x, z, i + 2)) // planta baja
+function updateGhosts() {
+    const k = runtime.postQuake ? Math.min(1, Math.max(0, (runtime.anxiety - 0.3) / 0.55)) : 0 // 0 = nada · 1 = todos los fantasmas
+    ghosts.forEach(g => {
+        if (g.space !== runtime.space) return
+        const want = g.rank < k
+        if (!want) { if (g.on) { g.on = false; g.m.visible = false } return }
+        if (!g.on || Math.random() < 0.04) g.off = [rr(-0.6, 0.6), rr(-0.6, 0.6)] // de vez en cuando salta a otro lado
+        g.on = true
+        g.m.visible = Math.random() > 0.06                                               // titila
+        g.m.material.opacity = (0.18 + 0.3 * Math.random()) * Math.min(1, (k - g.rank) * 4 + 0.3)
+        g.m.position.set(g.x + g.off[0], g.h / 2 - 0.15 - (Math.random() < 0.05 ? rr(0, 0.6) : 0), g.z + g.off[1])
+        g.m.scale.y = Math.random() < 0.05 ? rr(0.7, 1.4) : 1                            // a veces se estira, como una imagen mal cargada
+    })
+}
 
 // 10. Interior del MIO: otro espacio flotando en el vacío (entras y sales por la puerta)
 into('BUS')
@@ -528,6 +561,7 @@ export function updateEnvironment(dt = 0) {
         g.position.y = y + Math.abs(Math.sin(T * 27 + ph)) * 0.06 * sq - e.sink
         if (e.tilt) { tiltAxis.set(e.dz, 0, -e.dx); g.quaternion.premultiply(tiltQ.setFromAxisAngle(tiltAxis, e.tilt)) } // se inclina hacia el personaje
     })
+    updateGhosts()
     sets.forEach(({ destroyed, restored }) => {
         destroyed.children.forEach(m => m.material.opacity = 1 - p); restored.children.forEach(m => m.material.opacity = p)
         destroyed.visible = p < 1; restored.visible = p > 0

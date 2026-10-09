@@ -21,7 +21,7 @@ const actionOf = (seg) => seg.t > seg.f || (seg.t === seg.f && seg.t > 0.5) ? 'h
 const labelOf = (seg) => seg.t > seg.f ? 'Inhalar' : seg.t < seg.f ? 'Exhalar' : seg.t > 0.5 ? 'Sostener' : 'Pausa' // lo que dice el rótulo del medidor (Pausa = pulmones vacíos)
 
 // 2. Estado y controles: clic o espacio sostenidos (los botones y pop-ups no cuentan como "inhalar")
-let forced = null, active = false, tech = null, picked = null, last = -1, bag = [], si = 0, st = 0, L = 0, good = 0, total = 0, holding = false, hooks = {}
+let forced = null, active = false, tech = null, picked = null, last = -1, bag = [], si = 0, st = 0, L = 0, good = 0, total = 0, holding = false, hooks = {}, dur = 0 // dur: duración total del ciclo (para el reloj)
 const set = (h) => { holding = h }
 const ignored = (e) => e.target?.closest?.('button, .gx-modal, .gx-talk, .gx-card')
 addEventListener('pointerdown', (e) => { if (!runtime.paused && !ignored(e)) set(true) }); addEventListener('pointerup', () => set(false)); addEventListener('pointercancel', () => set(false)); addEventListener('blur', () => set(false))
@@ -49,8 +49,8 @@ export const breathing = {
     },
     prepare() { return picked || this.pick(runtime.space) }, // la técnica que toca (se elige si aún no hay una)
     start() {
-        tech = picked || this.pick(runtime.space); picked = null; active = true; si = 0; st = 0; L = 0; good = total = 0
-        Object.assign(runtime, { techName: tech.name, techHelp: tech.help, techId: tech.id, level: 0, target: 0, stepFill: 0, breathProgress: 0, prompt: '', action: '', label: '' })
+        tech = picked || this.pick(runtime.space); picked = null; active = true; si = 0; st = 0; L = 0; good = total = 0; dur = tech.segs ? tech.segs.reduce((s, g) => s + g.d, 0) : 0
+        Object.assign(runtime, { techName: tech.name, techHelp: tech.help, techId: tech.id, level: 0, target: 0, stepFill: 0, breathProgress: 0, prompt: '', action: '', label: '', timeLeft: dur || CONFIG.earth.timeout })
         if (tech.game) GAMES[tech.game].start()
     },
     stop() { active = false; runtime.phase = ''; runtime.action = ''; runtime.label = ''; if (tech?.game) GAMES[tech.game].stop() },
@@ -60,7 +60,7 @@ export const breathing = {
         const B = CONFIG.breathing
         if (tech.game) { // minijuegos
             const r = GAMES[tech.game].update(dt)
-            Object.assign(runtime, { prompt: r.prompt, label: r.label || '', stepFill: r.fill, target: -1, breathProgress: r.fill, action: '' })
+            Object.assign(runtime, { prompt: r.prompt, label: r.label || '', stepFill: r.fill, target: -1, breathProgress: r.fill, action: '', timeLeft: r.timeLeft })
             if (r.done !== undefined) finish(r.done)
             return
         }
@@ -70,7 +70,7 @@ export const breathing = {
         const slope = (seg.t - seg.f) / seg.d, upV = slope > 0 ? slope : B.rate, downV = slope < 0 ? -slope : B.rate
         L = Math.min(1, Math.max(0, L + (holding ? upV : -downV) * dt))
         total += dt; if (Math.abs(L - target) <= B.tol) good += dt
-        Object.assign(runtime, { level: L, target, prompt: seg.l, label: labelOf(seg), action: actionOf(seg), breathProgress: L })
+        Object.assign(runtime, { level: L, target, prompt: seg.l, label: labelOf(seg), action: actionOf(seg), breathProgress: L, timeLeft: Math.max(0, dur - total) }) // total = segundos que lleva el ciclo
         if (st >= seg.d) { si++; st = 0; hooks.onPhase?.(si); if (si >= tech.segs.length) finish(good / total >= B.pass) }
     }
 }
