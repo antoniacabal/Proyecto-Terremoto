@@ -22,7 +22,8 @@
         5.9 Linea de ayuda
         5.10 Advertencia
         5.11 Brigada Topos
-        5.12 Página de respiración (verde)
+        5.12 Página de respiración (verde azulado)
+        5.13 Organización Mundial de la Salud
     6. Footer
     7. Reactive
 
@@ -45,8 +46,7 @@
     --color-soporte-claro: #e4ffff; /* Cuadros informativos/fondos tranquilos */
     --color-tarjeta-sombra: #DE924A; /* Caja de atrás de todas las tarjetas, teléfonos y avisos (naranja claro) */
     --color-scroll-pista: #DABE9E; /* Franja del scroll sobre fondo crema (crema un poco más oscuro) */
-    --color-scroll-pulgar: #BF4E24; /* Pedazo y flechas del scroll sobre fondo crema (naranja) */
-    --color-atencion: #BF4E24; /* Color extra para llamar la atencion/alertas */
+    --color-atencion: #BF4E24; /* Color extra para llamar la atencion/alertas (también el pedazo y las flechas del scroll sobre fondo crema) */
     --color-texto: #101720; /* Color negro para textos que no es negro puro */
     --color-escena: rgb(10, 5, 14); /* Fondo de la sección del juego (muestra del index y narrativa) */
     --color-advertencia: #D01F2A; /* Título de la ventana de advertencia */
@@ -68,6 +68,7 @@
     font-style: normal;
     font-size: 46px;
     line-height: 0.9;
+    color: var(--color-atencion);
 }
 
 .subtitulo{
@@ -351,7 +352,7 @@ html, body{
 
     html{
         --scroll-pista: var(--color-scroll-pista);
-        --scroll-pulgar: var(--color-scroll-pulgar);
+        --scroll-pulgar: var(--color-atencion);
         scrollbar-color: var(--scroll-pulgar) var(--scroll-pista);
         transition: --scroll-pista 0.4s ease, --scroll-pulgar 0.4s ease;
     }
@@ -1034,6 +1035,16 @@ main
         list-style: none;
     }
 
+    @media (min-width: 1100px) /* 4 columnas de 2 filas, llenadas de arriba a abajo: cada columna queda de un solo tipo (y un solo color) */
+    {
+        .mapa-lineas
+        {
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(2, auto);
+            grid-auto-flow: column;
+        }
+    }
+
     .mapa-linea
     {
         position: relative;
@@ -1687,17 +1698,20 @@ html.modal-abierto
     .advertencia-accion--volver:hover svg { transform: translateX(-4px); }
     .advertencia-accion--seguir:hover svg { transform: translateX(4px); }
 
-    /* 5.11 Brigada Topos (herramientas-prevencion.html): naranja de los uniformes de la brigada y gris carbón */
+    /* 5.11 Brigada Topos (herramientas-prevencion.html): paleta de topos.mx — rojo de rescate, rojo coral y negro (atención y prevención) */
     .seccion-topos
     {
-        --topos-naranja: #E8641C;
-        --topos-carbon: #1F1F22;
+        --topos-rojo: #D10A0A;       /* rojo intenso de la franja y los botones de topos.mx */
+        --topos-coral: #D9423B;      /* rojo coral del pie de página de topos.mx */
+        --topos-carbon: #121212;     /* negro de la sección de operativos */
+        --topos-texto: #FF6A5F;      /* rojo claro para textos sobre negro (el rojo puro casi no se lee) */
         position: relative;
         color: var(--color-soporte-claro);
         background: var(--topos-carbon);
         box-shadow: 0 0 0 100vmax var(--topos-carbon); /* fondo de borde a borde aunque el artículo tenga margen lateral */
         clip-path: inset(0 -100vmax);
-        border-top: 8px solid var(--topos-naranja);
+        border-top: 8px solid var(--topos-rojo);
+        border-bottom: 8px solid var(--topos-coral);
     }
 
     .seccion-topos .recurso-nota { color: var(--color-soporte-claro); }
@@ -1715,7 +1729,7 @@ html.modal-abierto
         height: auto;
         padding: 14px;
         border-radius: 50%;
-        background: var(--topos-naranja); /* el logo es blanco: va sobre el naranja de la brigada */
+        background: var(--topos-rojo); /* el logo es blanco: va sobre el rojo de la brigada */
         flex-shrink: 0;
     }
 
@@ -1725,20 +1739,20 @@ html.modal-abierto
         font-size: 0.85rem;
         letter-spacing: 0.12em;
         text-transform: uppercase;
-        color: var(--topos-naranja);
+        color: var(--topos-texto);
     }
 
     .seccion-topos .topos-titulo { color: var(--color-soporte-claro); }
 
     .tarjeta--topos
     {
-        border-color: var(--topos-naranja);
-        background: #2B2B2F;
+        border-color: var(--topos-rojo);
+        background: #1C1C1C;
         color: var(--color-soporte-claro);
     }
 
-    .tarjeta--topos::before { background: var(--topos-naranja); }
-    .tarjeta--topos .subtitulo { color: var(--topos-naranja); }
+    .tarjeta--topos::before { background: var(--topos-coral); }
+    .tarjeta--topos .subtitulo { color: var(--topos-texto); }
     .tarjeta--topos p { color: var(--color-soporte-claro); }
 
     .topos-acciones
@@ -1752,9 +1766,9 @@ html.modal-abierto
     {
         display: inline-block;
         padding: 10px 22px;
-        border: 2px solid var(--topos-naranja);
+        border: 2px solid var(--topos-rojo);
         border-radius: 999px;
-        background: var(--topos-naranja);
+        background: var(--topos-rojo);
         color: #fff;
         font-family: "Outfit", sans-serif;
         font-weight: 600;
@@ -1762,8 +1776,8 @@ html.modal-abierto
         transition: background 0.25s ease, color 0.25s ease;
     }
 
-    .topos-boton--claro { background: transparent; color: var(--topos-naranja); }
-    .topos-boton:hover { background: #fff; color: var(--topos-carbon); border-color: #fff; }
+    .topos-boton--claro { background: transparent; color: var(--topos-texto); border-color: var(--topos-texto); }
+    .topos-boton:hover { background: var(--topos-coral); color: #fff; border-color: var(--topos-coral); }
     .topos-boton:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
 
     @media (max-width: 768px)
@@ -1771,17 +1785,96 @@ html.modal-abierto
         .topos-cabecera { flex-direction: column; align-items: flex-start; }
     }
 
-    /* 5.12 Página de técnicas de respiración: verdes suaves, más cercanos a un espacio de terapia */
+    /* 5.12 Página de técnicas de respiración: verde azulado suave (agua, calma), más cercano a un espacio de terapia */
     :root:has(body.pagina-respiracion)
     {
-        --color-acento: #DCEBDD;          /* fondo: verde menta muy claro */
-        --color-tarjeta-sombra: #8DBE96;  /* sombra de tarjetas y avisos */
-        --color-scroll-pista: #C3DCC6;
-        --color-scroll-pulgar: #4F8A63;
+        --color-acento: #D9EDEA;          /* fondo: verde agua muy claro */
+        --color-tarjeta-sombra: #7FBDB4;  /* sombra de tarjetas y avisos */
+        --color-scroll-pista: #BFDDD8;
     }
 
-    body.pagina-respiracion .tarjeta { background: #F4FBF4; }
-    body.pagina-respiracion .titulo { color: #2F5E43; }
+    :root:has(body.pagina-respiracion):not(.scroll-oscuro) { --scroll-pulgar: #3B8279; } /* sobre el header y el footer oscuros el scroll sigue cambiando como en las demás páginas */
+
+    body.pagina-respiracion .tarjeta { background: #F2FAF9; }
+    body.pagina-respiracion .titulo { color: #245A55; }
+
+    /* 5.13 Organización Mundial de la Salud (respiracion-consciente.html): azul de la OMS sobre blanco */
+    .seccion-oms
+    {
+        --oms-azul: #009ADE;         /* azul institucional de la OMS */
+        --oms-azul-oscuro: #0A3D62;  /* azul marino para textos */
+        --oms-fondo: #F3FAFE;
+        background: var(--oms-fondo);
+        box-shadow: 0 0 0 100vmax var(--oms-fondo); /* fondo de borde a borde aunque el artículo tenga margen lateral */
+        clip-path: inset(0 -100vmax);
+        border-top: 8px solid var(--oms-azul);
+        color: var(--oms-azul-oscuro);
+    }
+
+    .seccion-oms .recurso-nota { color: var(--oms-azul-oscuro); }
+
+    .oms-cabecera
+    {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+    }
+
+    .oms-logo
+    {
+        width: clamp(160px, 22vw, 240px);
+        height: auto;
+        padding: 12px 18px;
+        border-radius: 12px;
+        background: #fff;
+        box-shadow: 0 6px 18px rgba(10, 61, 98, 0.12);
+        flex-shrink: 0;
+    }
+
+    .oms-etiqueta
+    {
+        font-family: "Outfit", sans-serif;
+        font-size: 0.85rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--oms-azul);
+    }
+
+    body.pagina-respiracion .oms-titulo { color: var(--oms-azul-oscuro); }
+
+    body .seccion-oms .tarjeta--oms { border-color: var(--oms-azul); background: #fff; } /* body: le gana al fondo verde de las tarjetas de esta página */
+    .tarjeta--oms::before { background: var(--oms-azul); }
+    .tarjeta--oms .subtitulo { color: var(--oms-azul-oscuro); }
+
+    .oms-acciones
+    {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .oms-boton
+    {
+        display: inline-block;
+        padding: 10px 22px;
+        border: 2px solid var(--oms-azul);
+        border-radius: 999px;
+        background: var(--oms-azul);
+        color: #fff;
+        font-family: "Outfit", sans-serif;
+        font-weight: 600;
+        text-decoration: none;
+        transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+    }
+
+    .oms-boton--claro { background: transparent; color: var(--oms-azul-oscuro); border-color: var(--oms-azul-oscuro); }
+    .oms-boton:hover { background: var(--oms-azul-oscuro); border-color: var(--oms-azul-oscuro); color: #fff; }
+    .oms-boton:focus-visible { outline: 3px solid var(--oms-azul-oscuro); outline-offset: 3px; }
+
+    @media (max-width: 768px)
+    {
+        .oms-cabecera { flex-direction: column; align-items: flex-start; }
+    }
 
 /* 6. Footer ----------------- */
 .footer {
@@ -1804,10 +1897,11 @@ html.modal-abierto
 .patrocinadores-titulo
 {
     color: var(--color-soporte-claro);
+    font-family: "Outfit", sans-serif; /* sin esto caía en la fuente serif del navegador */
     font-size: 14px;
-    font-weight: 400;
+    font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.18em;
     opacity: 0.8;
 }
 
