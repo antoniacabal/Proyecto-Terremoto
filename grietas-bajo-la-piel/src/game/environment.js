@@ -398,7 +398,7 @@ makeLayer('MID', mid)
 makeLayer('INFRA', posts)
 makeLayer('FRONT', row(12, -27, 7, (x, i) => [x, 6.8, 1.2 + (i % 2) * 0.6, 0.8 + (i % 3) * 0.3, 1]))
 
-// Fallas de la ansiedad (después del sismo): copias translúcidas de postes, muros y pedazos de edificio que titilan y
+// Fallas de la ansiedad (después del primer minijuego perdido): copias translúcidas de postes, muros y pedazos de edificio que titilan y
 // saltan de lugar, como si la ciudad no terminara de "cargar". Mientras más ansiedad, más aparecen (ver updateGhosts)
 const ghosts = [], GHOST_COLS = ['#F2C063', '#BF895A', '#D8C8AE', '#A6869B']
 const GHOST_KINDS = [[0.3, 3.5, 0.3], [0.3, 2.6, 0.3], [1.4, 2.4, 0.9], [2.2, 4.5, 1.6], [3.2, 1.2, 0.5]] // poste alto · poste · bloque · pedazo de edificio · muro bajo
@@ -415,7 +415,7 @@ for (let d = 6; d < ROUTE_LEN - 4; d += rr(3, 5.5)) { // a los lados de la calle
 ;[[-7.6, -2.6], [-6.2, 2.6], [-2.6, 1.8], [-0.8, -0.4], [-5.2, -2.8], [-3.2, 2.9]].forEach(([x, z], i) => makeGhost('HOUSE', x, z, i))               // cuarto
 ;[[HX - 5.6, 0.4], [HX - 1.2, 3.4], [HX + 2.6, -3.4], [HX + 5.6, 3.2], [HX - 6.1, -3.6], [HX + 3.4, 0.2]].forEach(([x, z], i) => makeGhost('HOME', x, z, i + 2)) // planta baja
 function updateGhosts() {
-    const k = runtime.postQuake ? Math.min(1, Math.max(0, (runtime.anxiety - 0.3) / 0.55)) : 0 // 0 = nada · 1 = todos los fantasmas
+    const k = runtime.postQuake && runtime.failures >= 1 ? Math.min(1, Math.max(0, (runtime.anxiety - 0.3) / 0.55)) : 0 // empiezan después del primer minijuego perdido · 0 = nada · 1 = todas las fallas
     ghosts.forEach(g => {
         if (g.space !== runtime.space) return
         const want = g.rank < k

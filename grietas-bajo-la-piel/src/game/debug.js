@@ -61,7 +61,7 @@ export function initDebug(actions) {
     dif.add(CONFIG.bus, 'crisisMin', 2, 30, 1).name('MIO: crisis mín (s)'); dif.add(CONFIG.bus, 'crisisMax', 2, 40, 1).name('MIO: crisis máx (s)')
 
     // 6. Ansiedad, calle eterna y escenario
-    const an = g.addFolder('Ansiedad'); an.add(runtime, 'anxiety', 0, 1, .01).listen(); an.add(CONFIG.anxiety, 'shakeMax', 0, .5, .01).name('camera shake')
+    const an = g.addFolder('Ansiedad'); an.add(runtime, 'anxiety', 0, 1, .01).listen(); an.add(runtime, 'failures', 0, 4, 1).name('minijuegos perdidos (1: fallas · 2: personas que no existen)').listen(); an.add(CONFIG.anxiety, 'shakeMax', 0, .5, .01).name('camera shake')
     an.add(CONFIG.anxiety, 'satMin', 0, 1, .01).name('saturation min'); an.add(CONFIG.anxiety, 'postQuakeSat', 0, 1, .01).name('post-quake saturation'); an.add(CONFIG.anxiety, 'blurMax', 0, 10, .1).name('blur'); an.add(CONFIG.anxiety, 'vignetteMax', 0, 1, .01).name('vignette'); an.add(CONFIG.anxiety, 'distort', 0, 2, .05).name('city distortion')
     const ce = f('Calle eterna'); ce.add(CONFIG.street, 'from', 0, 1, .01).name('empieza con ansiedad'); ce.add(CONFIG.street, 'full', 0, 1, .01).name('máxima con ansiedad'); ce.add(CONFIG.street, 'endless', 0, 60, 1).name('cuánto se alarga'); ce.add(CONFIG.street, 'slow', 0, .9, .01).name('cuánto frena el paso')
     const en = f('Escenario'); en.add(runtime, 'envProgress', 0, 1, .01).name('environment progress').listen(); en.add(CONFIG.env, 'light', 0, 3, .05).name('light intensity')

@@ -3,6 +3,7 @@
     // 1. Estado y modelo del NPC
     // 2. Creación de NPCs
     // 3. Mamá
+        // 3.1 Personas que no existen (glitch)
     // 4. Movimiento y choques
 
 // 0. Imports
@@ -85,6 +86,44 @@ export const mom = (() => {
     }
 })()
 
+// 3.1 Personas que no existen: desde el segundo minijuego perdido aparecen siluetas "glitcheadas" alrededor de Gabriela.
+//     Titilan, tienen un eco rojo desfasado, se quedan mirándola y desaparecen cuando se acerca (para reaparecer en otro lado)
+const phantoms = []
+const phantomMats = () => ({ body: new THREE.MeshBasicMaterial({ color: 0x0d0d10, transparent: true, opacity: 0.85 }), eye: new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true }), echo: new THREE.MeshBasicMaterial({ color: 0xd01f2a, transparent: true, opacity: 0.2, depthWrite: false }) })
+for (let i = 0; i < 8; i++) {
+    const m = phantomMats(), g = new THREE.Group(), hg = new THREE.Group()
+    const b = new THREE.Mesh(bodyG, m.body); b.position.y = 0.65; hg.position.y = 1.5; hg.add(new THREE.Mesh(headG, m.body))
+    ;[-0.14, 0.14].forEach(x => { const e = new THREE.Mesh(eyeG, m.eye); e.scale.set(1, 1.4, 0.5); e.position.set(x, 0.05, 0.34); hg.add(e) })
+    const echo = new THREE.Group(), eb = new THREE.Mesh(bodyG, m.echo), eh = new THREE.Mesh(headG, m.echo); eb.position.y = 0.65; eh.position.y = 1.5; echo.add(eb, eh) // copia roja corrida, como una imagen mal sincronizada
+    g.add(b, hg, echo); g.visible = false
+    phantoms.push({ g, echo, m, t: 0, space: '' })
+}
+const phantomCount = () => runtime.postQuake && runtime.failures >= 2 ? Math.min(phantoms.length, 2 + runtime.failures * 2) : 0 // más fallos, más personas que no existen
+function placePhantom(p, sp) {
+    for (let k = 0; k < 25; k++) { // lejos de Gabriela pero no tanto: en el borde de lo que ve
+        const a = Math.random() * Math.PI * 2, d = 4 + Math.random() * 5, x = player.x + Math.cos(a) * d, z = player.z + Math.sin(a) * d
+        if (!walkableIn(sp, x, z)) continue
+        if (p.space !== sp) { spaces[sp].add(p.g); p.space = sp }
+        p.g.position.set(x, 0, z); p.t = 2 + Math.random() * 4; return true
+    }
+    return false
+}
+function updatePhantoms(dt, t, sp) {
+    const n = sp === 'BUS' ? 0 : phantomCount(); let near = 0
+    phantoms.forEach((p, i) => {
+        if (i >= n) { p.g.visible = false; return }
+        const pos = p.g.position, d = Math.hypot(pos.x - player.x, pos.z - player.z)
+        if (p.space !== sp || (p.t -= dt) <= 0 || d < 2.2) { if (!placePhantom(p, sp)) { p.g.visible = false; return } } // si te acercas, desaparece
+        p.g.visible = Math.random() > 0.08                                                     // titila
+        p.g.rotation.y = Math.atan2(player.x - pos.x, player.z - pos.z)                       // te mira fijo
+        p.echo.position.set(0.22 + Math.sin(t * 31 + i) * 0.12, 0.04, Math.cos(t * 23 + i) * 0.1) // eco desfasado (corrido hacia un lado)
+        p.g.scale.y = Math.random() < 0.04 ? 0.6 + Math.random() * 0.8 : 1                    // a veces se estira
+        p.m.body.opacity = 0.55 + Math.random() * 0.35
+        if (d < 3.5) near++                                                                    // el cuerpo reacciona como si fueran reales
+    })
+    return near
+}
+
 // 4. Movimiento y choques: se llama en cada cuadro
 const free = (n, x, z) => walkableIn(n.sp, x, z)
 const shove = (n, dx, dz) => { const p = n.g.position; if (free(n, p.x + dx, p.z + dz)) { p.x += dx; p.z += dz } }
@@ -141,5 +180,5 @@ export function updateNpcs(dt, t) {
             if (walkableIn(sp, px, pz)) { player.x = px; player.z = pz }
         }
     }
-    npcState.near = near
+    npcState.near = near + updatePhantoms(dt, t, sp)
 }
