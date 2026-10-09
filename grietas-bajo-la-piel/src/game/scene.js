@@ -9,4 +9,4 @@ export const ambient = new THREE.AmbientLight(0x8899bb, 0.7)
 export const sun = new THREE.DirectionalLight(0xaab4d0, 1)
 sun.position.set(8, 14, 6)
 scene.add(ambient, sun)
-addEventListener('resize', () => renderer.setSize(innerWidth, innerHeight))
+addEventListener('resize', () => { renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.setSize(innerWidth, innerHeight) }) // la resolución también se actualiza: con zoom del navegador u otra pantalla ya no queda pixelado

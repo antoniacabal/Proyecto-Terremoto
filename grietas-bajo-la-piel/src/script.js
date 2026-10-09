@@ -315,10 +315,12 @@ async function iniciarMuestra() {
         camera.bottom = -vista / 2
         camera.updateProjectionMatrix()
 
-        // Actualizar renderizador
+        // Actualizar renderizador (también la resolución: si cambia el zoom del navegador o la pantalla, no queda pixelado)
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
         renderer.setSize(sizes.width, sizes.height, false)
     })
     resizeObserver.observe(contenedor)
+    window.addEventListener('resize', () => renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))) // el zoom del navegador puede no cambiar el tamaño del contenedor
 
     // 3.9 Animación -----------------
     const clock = new THREE.Clock()
