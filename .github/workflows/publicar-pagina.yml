@@ -1,19 +1,16 @@
-# Publica la página en GitHub Pages cada vez que algo llega a main.
-# GitHub instala las librerías, compila con Vite y sube la carpeta dist/ (nadie tiene que subirla a mano).
-# Requisito, una sola vez: Settings → Pages → Build and deployment → Source: "GitHub Actions".
 name: Publicar la página
 
 on:
   push:
     branches: [main]
-  workflow_dispatch: # también se puede lanzar a mano desde la pestaña Actions
+  workflow_dispatch:
 
 permissions:
   contents: read
   pages: write
   id-token: write
 
-concurrency: # si llegan dos cambios seguidos, solo se publica el último
+concurrency:
   group: pages
   cancel-in-progress: true
 
