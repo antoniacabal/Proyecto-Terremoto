@@ -6,7 +6,7 @@ const pagina = (archivo) => fileURLToPath(new URL('./src/' + archivo, import.met
 export default {
     root: 'src/', // Sources files (typically where index.html is)
     publicDir: '../static/', // Path from "root" to static assets (files that are served as they are)
-    base: './', // Rutas relativas: la página funciona en cualquier carpeta (por ejemplo usuario.github.io/Proyecto-Terremoto/)
+    base: './', // Rutas relativas: la página funciona en cualquier carpeta (por ejemplo usuario.github.io/grietas-bajo-la-piel/)
     server:
     {
         host: true, // Open to local network and display URL

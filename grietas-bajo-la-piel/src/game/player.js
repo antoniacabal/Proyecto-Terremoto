@@ -27,12 +27,13 @@ const backpack = new THREE.Group(), bagMat = new THREE.MeshStandardMaterial({ co
     backpack.add(b, pocket); backpack.visible = false
 }
 group.add(body, head, backpack); scene.add(group)
+group.traverse(o => o.layers.set(1)) // capa propia: en el nivel 3 de ansiedad se dibuja nítida sobre el mundo borroso
 group.position.set(CONFIG.player.startX, 0, CONFIG.player.startZ)
 
 // 2. Poses: acostado sobre la cama (la cama está contra la pared del fondo; la cabeza va hacia la almohada)
 const LIE = { x: -1.5, y: 1.0, z: -1.2 }
 
-// 3. Controles: WASD o flechas
+// 3. Controles: WASD, flechas o el joystick táctil (touch.js lo escribe en runtime.joyX / joyY)
 const keys = new Set()
 addEventListener('keydown', (e) => keys.add(e.code)); addEventListener('keyup', (e) => keys.delete(e.code)); addEventListener('blur', () => keys.clear())
 const down = (...c) => c.some(k => keys.has(k))
@@ -54,18 +55,21 @@ export const player = {
     get z() { return group.position.z }, set z(v) { group.position.z = v },
     update(dt, t) {
         let s = 1, bob = 0
-        const ix = (down('KeyD', 'ArrowRight') ? 1 : 0) - (down('KeyA', 'ArrowLeft') ? 1 : 0)
-        const iy = (down('KeyW', 'ArrowUp') ? 1 : 0) - (down('KeyS', 'ArrowDown') ? 1 : 0)
+        let ix = (down('KeyD', 'ArrowRight') ? 1 : 0) - (down('KeyA', 'ArrowLeft') ? 1 : 0)
+        let iy = (down('KeyW', 'ArrowUp') ? 1 : 0) - (down('KeyS', 'ArrowDown') ? 1 : 0), push = 1
+        const jm = Math.hypot(runtime.joyX, runtime.joyY) // joystick táctil: la dirección es libre y empujarlo poco camina más lento
+        if (jm > 0.2) { ix = runtime.joyX; iy = runtime.joyY; push = Math.min(1, 0.35 + jm * 0.9) }
         if (sitting && !seatLocked && (ix || iy)) this.unsit() // al moverte te levantas (salvo en el viaje de antes del sismo)
         if (mode === 'free' && !lying && !sitting) {
             if (ix || iy) {
                 const n = Math.hypot(ix, iy), a = THREE.MathUtils.degToRad(CONFIG.camera.azimuth)
-                // movimiento relativo a la pantalla (W = hacia arriba en pantalla)
-                const vx = CONFIG.player.screenRelative ? (ix * Math.cos(a) - iy * Math.sin(a)) / n : ix / n
-                const vz = CONFIG.player.screenRelative ? (-ix * Math.sin(a) - iy * Math.cos(a)) / n : -iy / n
+                // teclado: alineado con las calles (una tecla = una calle, sin tener que apretar dos) · joystick: relativo a la pantalla (arrastrar hacia arriba = subir en la pantalla)
+                const rel = jm > 0.2 || CONFIG.player.screenRelative
+                const vx = rel ? (ix * Math.cos(a) - iy * Math.sin(a)) / n : ix / n
+                const vz = rel ? (-ix * Math.sin(a) - iy * Math.cos(a)) / n : -iy / n
                 // calle eterna: con mucha ansiedad caminas igual, pero avanzas menos
                 const slow = runtime.space === 'STREET' ? 1 - CONFIG.street.slow * endless() : 1
-                const sp = CONFIG.player.speed * slow * dt, p = group.position
+                const sp = CONFIG.player.speed * slow * push * dt, p = group.position
                 if (walkable(p.x + vx * sp, p.z + vz * sp)) { p.x += vx * sp; p.z += vz * sp }
                 else if (walkable(p.x + vx * sp, p.z)) p.x += vx * sp
                 else if (walkable(p.x, p.z + vz * sp)) p.z += vz * sp

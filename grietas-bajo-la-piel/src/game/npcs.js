@@ -25,21 +25,23 @@ const make = () => { // la cabeza y los ojos van en su propio grupo para poder g
 // 2. Creación de NPCs: peatones (en las dos calles), gente en el paradero, pasajeros sentados y conductor
 const r = (a, b) => a + Math.random() * (b - a)
 const npcs = [], R = 0.85 // R = distancia mínima entre centros
+export const npcList = npcs // (solo para revisar desde la consola con ?debug)
 const add = (o) => { o.g.userData.n = o; o.parent.add(o.g); npcs.push({ vx: 0, vz: 0, cool: 0, t: 0, state: 'walk', ...o }) }
 const ROUTES = SEGS.map((s, i) => { // uno por tramo de la calle · axis = eje por el que caminan · lanes = carriles · min/max = tramo que recorren
     const c = s.axis === 'x' ? s.z0 : s.x0, [a, b] = s.axis === 'x' ? [Math.min(s.x0, s.x1), Math.max(s.x0, s.x1)] : [Math.min(s.z0, s.z1), Math.max(s.z0, s.z1)]
-    return { axis: s.axis, lanes: [c - 2.3, c - 1.2, c + 1.2, c + 2.3], min: (i === 0 ? STREET_X0 : a) + 2, max: b - 2 }
+    return { axis: s.axis, lanes: [c - 2.0, c - 1.0, c + 1.0, c + 2.0], // carriles lejos del borde: contra el borde no podían separarse y se fusionaban
+             min: (i === 0 ? STREET_X0 : a) + 2, max: b - 2 }
 })
 const BUS_X = CONFIG.world.busX
 for (let i = 0; i < CONFIG.npcs.street; i++) {
-    const d = (i + 0.5) / CONFIG.npcs.street * ROUTE_LEN, si = SEGS.indexOf(routePoint(d)[2]) // repartidos a lo largo de todo el recorrido
+    const u = (i + 0.5) / CONFIG.npcs.street, d = (1 - (1 - u) ** 1.8) * ROUTE_LEN, si = SEGS.indexOf(routePoint(d)[2]) // repartidos por todo el recorrido, más apretados cerca de la universidad
     let route = ROUTES[si]
     if (si === 0 && route.lanes[i % 4] < 0) route = d < BUS_X - STREET_X0 ? { ...route, max: BUS_X - 3.5 } : { ...route, min: BUS_X + 8.5 } // del lado del MIO no lo cruzan: así no te encierran contra el bus
     let x = 0, z = 0
     for (let k = 0; k < 80; k++) { // busca un lugar libre y lejos de los demás, para que dos NPC nunca nazcan fusionados
-        const along = r(route.min, route.max), lane = route.lanes[i % 4] + r(-.2, .2)
+        const along = r(route.min, route.max), lane = route.lanes[i % 4] + r(-.1, .1)
         ;[x, z] = route.axis === 'x' ? [along, lane] : [lane, along]
-        if (walkableIn('STREET', x, z) && npcs.every(n => n.sp !== 'STREET' || Math.hypot(n.g.position.x - x, n.g.position.z - z) > R * 1.8)) break
+        if (walkableIn('STREET', x, z, true) && npcs.every(n => n.sp !== 'STREET' || Math.hypot(n.g.position.x - x, n.g.position.z - z) > 4)) break
     }
     const g = make(); g.position.set(x, 0, z)
     add({ g, parent: spaces.STREET, sp: 'STREET', kind: 'walker', route, dir: Math.random() < 0.5 ? 1 : -1, speed: r(0.7, 1.4), ph: r(0, 6) })
@@ -125,8 +127,8 @@ function updatePhantoms(dt, t, sp) {
 }
 
 // 4. Movimiento y choques: se llama en cada cuadro
-const free = (n, x, z) => walkableIn(n.sp, x, z)
-const shove = (n, dx, dz) => { const p = n.g.position; if (free(n, p.x + dx, p.z + dz)) { p.x += dx; p.z += dz } }
+const free = (n, x, z) => walkableIn(n.sp, x, z, true) // los peatones no se salen de la calle (ni al caminito de la casa ni al pasto)
+const shove = (n, dx, dz) => { const p = n.g.position; if (!free(n, p.x + dx, p.z + dz)) return false; p.x += dx; p.z += dz; return true }
 export function updateNpcs(dt, t) {
     mom.update(dt, t)
     const sp = runtime.space, q = runtime.quake; let near = 0
@@ -140,9 +142,19 @@ export function updateNpcs(dt, t) {
         if (n.kind === 'walker') {
             if (n.state === 'stare') { n.t -= dt; n.g.rotation.y = Math.atan2(player.x - p.x, player.z - p.z); if (n.t <= 0) n.state = 'walk' } // se detiene y te mira
             else {
-                const ro = n.route, alongX = ro.axis === 'x', v = (alongX ? p.x : p.z) + n.dir * n.speed * dt
+                const ro = n.route, alongX = ro.axis === 'x'
+                if (!free(n, p.x, p.z)) { // quedó fuera de la calle (p. ej. un empujón): vuelve al carril libre más cercano en vez de quedarse girando en el sitio
+                    const c = alongX ? p.z : p.x, lane = ro.lanes.slice().sort((a, b) => Math.abs(a - c) - Math.abs(b - c)).find(l => alongX ? free(n, p.x, l) : free(n, l, p.z))
+                    if (lane !== undefined) alongX ? p.z = lane : p.x = lane
+                }
+                const v = (alongX ? p.x : p.z) + n.dir * n.speed * dt
                 const nx = alongX ? v : p.x, nz = alongX ? p.z : v
-                if (free(n, nx, nz) && v > ro.min && v < ro.max) { p.x = nx; p.z = nz } else n.dir *= -1 // el escenario lo frena: da la vuelta
+                // alguien justo delante (en el mismo sentido o de frente): no se le mete encima, da la vuelta. Antes seguía caminando contra el otro
+                // y los dos quedaban fusionados. turnCool evita que gire en cada cuadro si queda encerrado entre dos (se queda quieto un momento)
+                const close = (o) => Math.hypot(o.g.position.x - nx, o.g.position.z - nz), blocked = npcs.some(o => o !== n && o.sp === n.sp && close(o) < R * 1.2 && close(o) < Math.hypot(o.g.position.x - p.x, o.g.position.z - p.z))
+                n.turnCool = Math.max(0, (n.turnCool || 0) - dt)
+                if (blocked) { if (!n.turnCool) { n.dir *= -1; n.turnCool = 0.8 } }
+                else if (free(n, nx, nz) && v > ro.min && v < ro.max) { p.x = nx; p.z = nz } else n.dir *= -1 // el escenario lo frena: da la vuelta
                 n.g.rotation.y = alongX ? (n.dir > 0 ? Math.PI / 2 : -Math.PI / 2) : (n.dir > 0 ? 0 : Math.PI)
                 p.y = Math.abs(Math.sin(t * 7 + n.ph)) * 0.1
             }
@@ -155,8 +167,12 @@ export function updateNpcs(dt, t) {
         if (d < R) {
             if (d < 1e-3) { const an = Math.random() * 6.28; dx = Math.cos(an); dz = Math.sin(an); d = 1 }
             const o = (R - Math.min(d, R)) / 2 + 0.02, ux = dx / d, uz = dz / d
-            const side = Math.abs(dz) < 0.3 ? (i % 2 ? 1 : -1) * o * 0.6 : 0 // de frente por el mismo carril: uno se hace a un lado
-            if (a.kind === 'walker') shove(a, -ux * o, -uz * o - side); if (b.kind === 'walker') shove(b, ux * o, uz * o + side)
+            // de frente por el mismo carril: uno se hace a un lado (perpendicular a su calle, también en los tramos que van en Z)
+            const ax = (a.route || b.route)?.axis || 'x', across = ax === 'x' ? Math.abs(dz) : Math.abs(dx)
+            const side = across < 0.3 ? (i % 2 ? 1 : -1) * o * 0.6 : 0, [sx, sz] = ax === 'x' ? [0, side] : [side, 0]
+            const okA = a.kind === 'walker' && shove(a, -ux * o - sx, -uz * o - sz), okB = b.kind === 'walker' && shove(b, ux * o + sx, uz * o + sz)
+            if (!okA && b.kind === 'walker') shove(b, ux * o * 2 + sx, uz * o * 2 + sz) // si uno quedó contra el borde, el otro se aparta el doble
+            if (!okB && a.kind === 'walker') shove(a, -ux * o * 2 - sx, -uz * o * 2 - sz)
         }
     }
     for (const n of npcs) { // con el personaje

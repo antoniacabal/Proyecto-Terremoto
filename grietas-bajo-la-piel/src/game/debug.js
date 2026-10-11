@@ -13,11 +13,14 @@ import GUI from 'lil-gui'
 import { CONFIG, runtime } from './config.js'
 import { sm } from './stateMachine.js'
 import { TECHS } from './breathing.js'
+import { player } from './player.js'
+import { npcList } from './npcs.js'
 
 // 1. Panel de debug
 // Solo visible con ?debug en la URL (moderadores/desarrolladores).
 export function initDebug(actions) {
     if (!new URLSearchParams(location.search).has('debug')) return
+    window.juego = { runtime, CONFIG, player, npcs: npcList } // para revisar el estado desde la consola (solo con ?debug)
     const g = new GUI({ title: 'Debug' }), f = (n) => g.addFolder(n).close()
     const add = (folder, items) => Object.entries(items).forEach(([label, fn]) => folder.add({ [label]: fn }, label))
 
@@ -55,16 +58,20 @@ export function initDebug(actions) {
 
     // 5. Ajustes de crisis: solo se notan con la narrativa automática activada
     const dif = f('Ajustes de crisis')
-    dif.add(CONFIG, 'maxFailures', 1, 10, 1).name('fallos permitidos')
+    dif.add(CONFIG, 'maxFailures', 1, 10, 1).name('fallos seguidos para perder')
     dif.add(CONFIG.crisis, 'first', 1, 40, 1).name('1.ª crisis (s)'); dif.add(CONFIG.crisis, 'min', 2, 40, 1).name('crisis mín (s)'); dif.add(CONFIG.crisis, 'max', 2, 60, 1).name('crisis máx (s)')
     dif.add(CONFIG.crisis, 'startAnxiety', .3, 1, .01).name('ansiedad al iniciar crisis'); dif.add(CONFIG.anxiety, 'failPenalty', 0, .5, .01).name('castigo por fallar')
     dif.add(CONFIG.bus, 'crisisMin', 2, 30, 1).name('MIO: crisis mín (s)'); dif.add(CONFIG.bus, 'crisisMax', 2, 40, 1).name('MIO: crisis máx (s)')
 
     // 6. Ansiedad, calle eterna y escenario
-    const an = g.addFolder('Ansiedad'); an.add(runtime, 'anxiety', 0, 1, .01).listen(); an.add(runtime, 'glitch', 0, 4, 1).name('nivel de falla (1: fallas · 2: personas que no existen)').listen(); an.add(CONFIG.anxiety, 'shakeMax', 0, .5, .01).name('camera shake')
+    const an = g.addFolder('Ansiedad'); an.add(runtime, 'anxiety', 0, 1, .01).listen(); an.add(runtime, 'failStreak', 0, 3, 1).name('nivel de ansiedad (0 a 3)').onChange(v => { runtime.glitch = v }).listen(); an.add(runtime, 'glitch', 0, 4, 1).name('nivel de falla (1: fallas · 2: personas que no existen)').listen(); an.add(CONFIG.anxiety, 'shakeMax', 0, .5, .01).name('camera shake')
     an.add(CONFIG.anxiety, 'satMin', 0, 1, .01).name('saturation min'); an.add(CONFIG.anxiety, 'postQuakeSat', 0, 1, .01).name('post-quake saturation'); an.add(CONFIG.anxiety, 'blurMax', 0, 10, .1).name('blur'); an.add(CONFIG.anxiety, 'vignetteMax', 0, 1, .01).name('vignette'); an.add(CONFIG.anxiety, 'distort', 0, 2, .05).name('city distortion')
     const ce = f('Calle eterna'); ce.add(CONFIG.street, 'from', 0, 1, .01).name('empieza con ansiedad'); ce.add(CONFIG.street, 'full', 0, 1, .01).name('máxima con ansiedad'); ce.add(CONFIG.street, 'endless', 0, 60, 1).name('cuánto se alarga'); ce.add(CONFIG.street, 'slow', 0, .9, .01).name('cuánto frena el paso')
     const en = f('Escenario'); en.add(runtime, 'envProgress', 0, 1, .01).name('environment progress').listen(); en.add(CONFIG.env, 'light', 0, 3, .05).name('light intensity')
+    // Cámara: alejarla para revisar el mapa completo (la cámara sigue a Gabriela; muévela con WASD para recorrer)
+    const cam = g.addFolder('Cámara'); cam.add(CONFIG.camera, 'zoom', 0.05, 2.5, 0.01).name('zoom (menos = más lejos)').listen()
+    add(cam, { 'Vista general del mapa': () => { CONFIG.camera.zoom = 0.12 }, 'Zoom normal': () => { CONFIG.camera.zoom = 1 } })
+    cam.add(CONFIG.player, 'speed', 1, 30, 0.5).name('velocidad al caminar (para recorrer rápido)')
 
     // 7. Pruebas
     add(g.addFolder('Pruebas'), {

@@ -27,7 +27,7 @@ const earth = {
         const timeLeft = Math.max(0, E.timeout - eT)
         if (onT >= E.need) return { prompt: '', fill: 1, done: true, timeLeft }
         if (eT >= E.timeout) return { prompt: '', fill: onT / E.need, done: false, timeLeft: 0 } // se acabó el tiempo: el minijuego se pierde
-        return { prompt: on ? `Respira lento... ${Math.ceil(E.need - onT)} s` : 'Camina hasta el pasto, a un lado de la calle', label: on ? 'Respira lento' : 'Busca el pasto', fill: onT / E.need, timeLeft }
+        return { prompt: on ? `Respira lento... ${Math.ceil(E.need - onT)} s` : '', label: on ? 'Respira lento' : 'Busca el pasto verde', fill: onT / E.need, timeLeft }
     }
 }
 

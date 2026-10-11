@@ -26,8 +26,8 @@ function mix(a, force) {
     if (!ctx) return
     if (!force && Math.abs(a - mixA) < 0.01) return
     mixA = a
-    calmGain.gain.setTargetAtTime(musicOn ? 0.07 * (1 - clamp01((a - 0.1) / 0.5)) : 0, ctx.currentTime, 0.6)
-    droneGain.gain.setTargetAtTime(musicOn ? 0.1 * clamp01((a - 0.08) / 0.8) : 0, ctx.currentTime, 0.4)
+    calmGain.gain.setTargetAtTime(musicOn ? 0.045 * (1 - clamp01((a - 0.1) / 0.5)) : 0, ctx.currentTime, 0.6) // volumen bajado (antes 0.07 y 0.1)
+    droneGain.gain.setTargetAtTime(musicOn ? 0.065 * clamp01((a - 0.08) / 0.8) : 0, ctx.currentTime, 0.4)
 }
 
 // 3. Inicio del audio: se llama con el primer gesto del usuario

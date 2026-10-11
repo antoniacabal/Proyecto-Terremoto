@@ -57,6 +57,30 @@ export const SEGS = ROUTE.slice(1).map(([x1, z1], i) => { // tramos: eje, direcc
 export const ROUTE_LEN = SEGS.reduce((s, g) => s + g.len, 0)
 const segRect = (s, pad) => [Math.min(s.x0, s.x1) - pad, Math.max(s.x0, s.x1) + pad, Math.min(s.z0, s.z1) - pad, Math.max(s.z0, s.z1) + pad]
 const ROADS = SEGS.map(s => segRect(s, HW)); ROADS[0][0] = STREET_X0; ROADS[ROADS.length - 1][2] = GATE // la calle se corta en la valla y en la puerta
+// Calles cerradas en las esquinas: en cada giro la calle sigue un poco en los dos sentidos que no se usan y una valla de obra la corta.
+// Solo decoración (no se camina): da la ilusión de que la ciudad es más grande y las esquinas no quedan peladas
+const STUB_LEN = 15, STUBS = []
+const stubAt = (cx, cz, axis, sg) => { // una calle cerrada que sale del punto (cx, cz) hacia sg en el eje axis
+    const c = axis === 'x' ? cx : cz, a = c + sg * HW, b = c + sg * (HW + STUB_LEN)
+    STUBS.push({ r: axis === 'x' ? [Math.min(a, b), Math.max(a, b), cz - HW, cz + HW] : [cx - HW, cx + HW, Math.min(a, b), Math.max(a, b)], axis, sg, cx, cz })
+}
+ROUTE.slice(1, -1).forEach(([cx, cz], k) => {
+    const sIn = SEGS[k], sOut = SEGS[k + 1]
+    // una sola calle cerrada por esquina: en la 1.ª y la 3.ª sigue derecho; en la 2.ª, hacia atrás de la calle que sale
+    if (k === 1) stubAt(cx, cz, sOut.axis, -sOut.dir)
+    else stubAt(cx, cz, sIn.axis, sIn.dir)
+})
+stubAt(UX, GATE + HW, 'x', 1) // junto a la universidad: una calle sale hacia un lado justo frente a la entrada (la universidad queda en la esquina)
+// Jardineras de las calles cerradas (solo decoración, no cuentan para el Earthing): angostas, junto al bordillo, en los dos andenes
+const STUB_PLANTERS = []
+STUBS.forEach(({ axis, sg, cx, cz }) => [-1, 1].forEach(side => {
+    for (let t = HW + 2; t + 3 < HW + STUB_LEN; t += 7) {
+        const u0 = (axis === 'x' ? cx : cz) + sg * t, u1 = u0 + sg * 3, [lo, hi] = [Math.min(u0, u1), Math.max(u0, u1)]
+        const c = axis === 'x' ? cz : cx, [v0, v1] = side < 0 ? [c - HW - 2.1, c - HW - 0.3] : [c + HW + 0.3, c + HW + 2.1]
+        STUB_PLANTERS.push(axis === 'x' ? [lo, hi, v0, v1] : [v0, v1, lo, hi])
+    }
+}))
+const BLOCKED = ROADS.concat(STUBS.map(o => o.r)) // calles de verdad + calles cerradas: ahí no van casas ni árboles
 const EXT = [UX - HW, UX + HW, GATE, GATE] // tramo extra de la calle eterna (crece con la ansiedad)
 export const HOME_DOOR = { x: -3.5, z: -8 } // casa de Gabriela en la fila de casas de la calle 1 (su puerta mira a la calle)
 const PATH = [HOME_DOOR.x - 0.7, HOME_DOOR.x + 0.7, HOME_DOOR.z + 1.6, -3]  // caminito de la puerta al andén
@@ -98,22 +122,40 @@ SEGS.forEach((s, i) => {
         .map(([x0, x1, z0, z1, far]) => [...trim([x0, x1, z0, z1], s.axis, i), far])
     sides.forEach(([x0, x1, z0, z1, far]) => {
         if (x1 - x0 < 1 || z1 - z0 < 1) return // franja que quedó sin espacio después del recorte
-        if (z1 > PATH[2] && z0 < PATH[3] && x0 < PATH[1] && x1 > PATH[0]) { GRASS.push({ r: [x0, PATH[0], z0, z1], far }, { r: [PATH[1], x1, z0, z1], far }); return } // el caminito de la casa parte el pasto
-        GRASS.push({ r: [x0, x1, z0, z1], far })
+        const add = (r) => GRASS.push({ r, far, axis: s.axis })
+        if (z1 > PATH[2] && z0 < PATH[3] && x0 < PATH[1] && x1 > PATH[0]) { add([x0, PATH[0], z0, z1]); add([PATH[1], x1, z0, z1]); return } // el caminito de la casa parte el pasto
+        add([x0, x1, z0, z1])
     })
 })
 const GRASS_STRIPS = GRASS.map(g => g.r)
+// Andén: las franjas de los lados de la calle son de concreto, con pedazos de pasto cada tanto (como un andén de ciudad).
+// SECTIONS = esos pedazos de pasto: en el Earthing solo cuenta pararse sobre uno de ellos
+// Más difícil: cada lado tiene una cada SEC_GAP, los dos lados van alternados (nunca una frente a otra) y ninguna queda a menos de SEC_MIN de otra
+const SEC_L = 4, SEC_GAP = 22, SEC_MIN = 13, SECTIONS = []
+const secCenter = (r) => [(r[0] + r[1]) / 2, (r[2] + r[3]) / 2]
+GRASS.forEach(({ r: [x0, x1, z0, z1], far, axis }) => {
+    const [a0, a1] = axis === 'x' ? [x0, x1] : [z0, z1]
+    for (let c = a0 + 1.5 + (far ? 0 : SEC_GAP / 2); c + SEC_L < a1 - 0.5; c += SEC_GAP) {
+        const [b0, b1] = axis === 'x' ? (far ? [z1 - 2.1, z1 - 0.3] : [z0 + 0.3, z0 + 2.1]) : (far ? [x1 - 2.1, x1 - 0.3] : [x0 + 0.3, x0 + 2.1]) // jardinera angosta junto a la calle; el resto del andén queda libre
+        const r = axis === 'x' ? [c, c + SEC_L, b0, b1] : [b0, b1, c, c + SEC_L]
+        const [cx, cz] = secCenter(r)
+        const underStub = STUBS.some(o => r[0] < o.r[1] && r[1] > o.r[0] && r[2] < o.r[3] && r[3] > o.r[2]) // no debajo de una calle cerrada
+        if (!underStub && SECTIONS.every(o => { const [ox, oz] = secCenter(o.r); return Math.hypot(ox - cx, oz - cz) >= SEC_MIN })) SECTIONS.push({ r, far })
+    }
+})
 let grassWalk = false
 const inRect = ([x0, x1, z0, z1], x, z) => x >= x0 && x <= x1 && z >= z0 && z <= z1
 const grow = ([x0, x1, z0, z1], p) => [x0 - p, x1 + p, z0 - p, z1 + p]
-export const walkableIn = (sp, x, z) => { // se puede preguntar por cualquier espacio (los NPCs lo usan)
-    return (RECTS[sp].some(r => inRect(r, x, z)) || (grassWalk && sp === 'STREET' && GRASS_STRIPS.some(r => inRect(r, x, z)))) &&
+// npc = true: los peatones no pisan el caminito de la casa ni el andén. Antes un empujón los metía en el caminito,
+// ahí no podían avanzar y daban la vuelta en cada cuadro (se veían titilar sobre el andén)
+export const walkableIn = (sp, x, z, npc = false) => { // se puede preguntar por cualquier espacio (los NPCs lo usan)
+    return (RECTS[sp].some(r => inRect(r, x, z) && !(npc && r === PATH)) || (!npc && grassWalk && sp === 'STREET' && GRASS_STRIPS.some(r => inRect(r, x, z)))) &&
         !SOLIDS.some(s => s.space === sp && (!s.active || s.active()) && Math.abs(x - s.x) < s.hw && Math.abs(z - s.z) < s.hd)
 }
 export const walkable = (x, z) => walkableIn(runtime.space, x, z)
-// pisando el pasto de los lados de la calle (con un margen: pararse en el borde del andén ya cuenta)
-const GRASS_EDGE = 0.45
-export const onGrass = (x, z) => runtime.space === 'STREET' && GRASS_STRIPS.some(r => inRect(grow(r, GRASS_EDGE), x, z)) &&
+// pisando uno de los pedazos de pasto del andén (con un margen pequeño: pararse en el borde ya cuenta)
+const GRASS_EDGE = 0.3
+export const onGrass = (x, z) => runtime.space === 'STREET' && SECTIONS.some(p => inRect(grow(p.r, GRASS_EDGE), x, z)) &&
     !ROADS.some(r => inRect(grow(r, -GRASS_EDGE), x, z)) && !inRect(PATH, x, z)
 const nearestIn = (rects, x, z) => {
     let best = null, bd = Infinity
@@ -121,8 +163,8 @@ const nearestIn = (rects, x, z) => {
     return best
 }
 const clear = (x, z, tx, tz) => { for (let i = 1; i <= 12; i++) { const k = i / 12; if (!walkable(x + (tx - x) * k, z + (tz - z) * k)) return false } return true } // camino recto sin obstáculos (p. ej. el MIO)
-export const nearestGrass = (x, z) => { // el pasto alcanzable más cercano, prefiriendo el lado lejano a la cámara (en el cercano lo tapan casas y árboles)
-    const opts = GRASS.map(g => { const p = nearestIn([grow(g.r, -0.5)], x, z); return { ...p, cost: Math.hypot(p.x - x, p.z - z) + (g.far ? 0 : 4) } }).sort((a, b) => a.cost - b.cost)
+export const nearestGrass = (x, z) => { // el pedazo de pasto alcanzable más cercano, prefiriendo el lado lejano a la cámara (en el cercano lo tapan casas y árboles)
+    const opts = SECTIONS.map(g => { const p = nearestIn([grow(g.r, -0.6)], x, z); return { ...p, cost: Math.hypot(p.x - x, p.z - z) + (g.far ? 0 : 4) } }).sort((a, b) => a.cost - b.cost)
     const p = opts.find(o => clear(x, z, o.x, o.z)) || opts[0]; return [p.x, p.z]
 }
 export const pullBack = (x, z) => {
@@ -130,7 +172,7 @@ export const pullBack = (x, z) => {
     if (rects.some(r => inRect(r, x, z))) return null
     return nearestIn(rects, x, z)
 }
-export function setGrass(v) { grassWalk = v; runtime.grassGreen = v } // Earthing: pinta el pasto de verde y permite caminar sobre él
+export function setGrass(v) { grassWalk = v; runtime.grassGreen = v } // Earthing: todo el pasto se satura de verde y se puede caminar por el andén
 
 // 4. Utilidades de decoración: aleatorio con semilla: el mapa es igual en cada carga
 const rng = (seed => () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296)(7)
@@ -140,10 +182,11 @@ const scatter = (geo, calm, tense, pts, parent = cur) => { // muchas copias de u
     pts.forEach(([x, y, z, sx = 1, sy = 1, sz = 1, ry = 0], i) => im.setMatrixAt(i, m.compose(new THREE.Vector3(x, y, z), q.setFromEuler(e.set(0, ry, 0)), new THREE.Vector3(sx, sy, sz))))
     im.frustumCulled = false; parent.add(im); return im
 }
-// Delineado amarillo (--color-principal) de los objetos con los que se interactúa
-const OUTLINE = new THREE.MeshBasicMaterial({ color: 0xf2c063, side: THREE.BackSide, transparent: true, visible: false })
-export const setHighlight = (v) => { OUTLINE.visible = v } // los objetos solo brillan después de levantarte
-const outlined = (mesh, w, h, d, pad = 0.14) => { const o = new THREE.Mesh(new THREE.BoxGeometry(w + pad, h + pad, d + pad), OUTLINE); mesh.add(o); mesh.userData.outline = o; return mesh }
+// Brillo amarillo (--color-principal) de lo que toca hacer ahora: delineado en los objetos y un panel en las puertas.
+// main.js enciende solo el del objetivo actual (en vez de decirlo con texto)
+export const OUTLINE = new THREE.MeshBasicMaterial({ color: 0xf2c063, side: THREE.BackSide, transparent: true, depthWrite: false })
+export const SOFT = new THREE.MeshBasicMaterial({ color: 0xf2c063, side: THREE.BackSide, transparent: true, depthWrite: false }) // brillo suave: el MIO después del sismo y las bancas libres
+const outlined = (mesh, w, h, d, pad = 0.14, y = 0, m = OUTLINE) => { const o = new THREE.Mesh(new THREE.BoxGeometry(w + pad, h + pad, d + pad), m); o.position.y = y; o.visible = false; mesh.add(o); mesh.userData.outline = o; return mesh }
 // Árboles (calle) y matas (casa)
 const trunkMat = mat('#A16A49', '#201826'), blossomMat = mat('#A6869B', '#790A0E'), leafMat = mat('#799180', '#482642')
 const trunkGeo = new THREE.CylinderGeometry(0.16, 0.28, 2, 6), blobGeo = new THREE.IcosahedronGeometry(1, 0)
@@ -164,7 +207,7 @@ export function scareBuilding(px, pz) {
     return best
 }
 const tiltAxis = new THREE.Vector3(), tiltQ = new THREE.Quaternion()
-const grass = []
+const grass = [] // en el Earthing todo el pasto se satura de verde
 const grassOf = (mesh, calm, tense, green) => grass.push({ m: mesh.material, a: new THREE.Color(calm), b: new THREE.Color(tense), g: new THREE.Color(green) })
 
 // 6. Capas de la ciudad: plano medio, infraestructura y elementos frontales (versión destruida / reconstruida)
@@ -173,16 +216,21 @@ const sets = []
 function makeLayer(name, items) {
     const mk = (destroyed) => {
         const g = new THREE.Group(); g.name = name + (destroyed ? '_DESTROYED' : '_RESTORED')
-        items.forEach(([x, z, w, h, d], i) => {
+        const ms = items.map(([x, z, w, h, d], i) => {
             const [c, t] = destroyed ? ['#71708A', '#201826'] : RESTORED[i % 3]
-            const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat(c, t, { transparent: true }))
-            m.position.set(x, destroyed ? h * 0.35 : h / 2, z)
-            if (destroyed) { m.scale.y = 0.7; m.rotation.z = (i % 2 ? 1 : -1) * 0.1; m.rotation.x = 0.05 * (i % 3) }
-            g.add(m)
-        }); cur.add(g); return g
+            const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat(c, t)) // opaco: las dos versiones translúcidas a la vez se dibujaban mal (cajas fantasma sobre el pasto)
+            m.position.set(x, 0, z); m.userData.h = destroyed ? h * 0.7 : h; m.userData.base = destroyed ? 0.7 : 1
+            if (destroyed) m.rotation.z = (i % 2 ? 1 : -1) * 0.1
+            m.userData.lift = destroyed ? Math.sin(0.1) * w / 2 : 0 // la esquina inclinada no se mete en el piso
+            g.add(m); return m
+        }); cur.add(g); return ms
     }
-    sets.push({ destroyed: mk(true), restored: mk(false) })
+    const d = mk(true), r = mk(false)
+    items.forEach((_, i) => sets.push({ d: d[i], r: r[i], th: (i * 0.618034) % 1, k: 1 })) // th: con cuánto progreso se reconstruye cada pieza (en desorden)
 }
+// Cada pieza cambia sola cuando el progreso pasa su umbral: lo destruido se encoge hacia el suelo y lo reconstruido crece desde el suelo
+// (antes las capas enteras se hundían en el piso y se veían cortadas a medio camino)
+const growFrom = (m, k) => { m.visible = k > 0.01; m.scale.y = Math.max(0.001, k) * (m.userData.base ?? 1); m.position.y = m.userData.h * k / 2 + m.userData.lift * k }
 const row = (n, x0, dx, f) => Array.from({ length: n }, (_, i) => f(x0 + i * dx, i))
 
 // 7. Cuarto (segundo piso), según el plano: armario y escritorio contra la pared izquierda, cama contra la pared del fondo,
@@ -202,7 +250,7 @@ box(0.5, 3.2, 0.5, -8.6, 1.5, 3.3, '#BF895A', '#580213')       // poste izquierd
 box(1.6, 1.0, 0.06, -4.6, 1.7, -3.18, '#8296B7', '#201826')    // ventana
 box(0.3, 2.4, 0.3, -5.9, 1.2, 3.3, '#A16A49', '#201826'); box(0.3, 2.4, 0.3, -4.1, 1.2, 3.3, '#A16A49', '#201826') // puerta del cuarto
 box(2.1, 0.3, 0.3, -5, 2.55, 3.3, '#A16A49', '#201826')        // dintel
-furn(1.4, 0.6, 2.2, -1.5, 0.3, -2.2, '#BF895A', '#790A0E')     // cama
+furn(1.4, 0.6, 2.2, -1.5, 0.3, -2.2, '#BF895A', '#790A0E')     // cama (levantarse es una escena: no brilla)
 box(1.5, 1.1, 0.15, -1.5, 0.55, -3.22, '#A16A49', '#201826')   // cabecero
 box(1.0, 0.15, 0.5, -1.5, 0.68, -2.85, '#D8C8AE', '#71708A')   // almohada
 box(1.44, 0.08, 1.3, -1.5, 0.64, -1.65, '#A6869B', '#482642')  // cobija
@@ -269,7 +317,7 @@ solid(0.7, 0.7, HX - 2, -2.2)                                      // mamá (el 
 // 9. Calle: isla flotante con campo. Sale de la casa de Gabriela y avanza en Z hasta la universidad (como en el plano)
 into('STREET')
 const RB = ROUTE.reduce((b, [x, z]) => [Math.min(b[0], x), Math.max(b[1], x), Math.min(b[2], z), Math.max(b[3], z)], [Infinity, -Infinity, Infinity, -Infinity])
-const FX0 = RB[0] - 12, FX1 = RB[1] + 24, FZ0 = RB[2] - 22, FZ1 = RB[3] + 22 // el campo llega lejos de la calle: nunca se ve el vacío
+const FX0 = RB[0] - 12, FX1 = RB[1] + 36, FZ0 = RB[2] - 22, FZ1 = RB[3] + 22 // el campo llega lejos de la calle: nunca se ve el vacío
 const field = box(FX1 - FX0, 0.5, FZ1 - FZ0, (FX0 + FX1) / 2, -0.4, (FZ0 + FZ1) / 2, '#799180', '#482642') // campo (superficie y = -0.15)
 box(FX1 - FX0 - 1.4, 0.9, FZ1 - FZ0 - 1.4, (FX0 + FX1) / 2, -1.1, (FZ0 + FZ1) / 2, '#A16A49', '#201826') // base de tierra flotante
 SEGS.forEach((s, i) => { // los cuatro tramos (el primero sigue detrás de la valla hasta el borde del campo)
@@ -278,13 +326,21 @@ SEGS.forEach((s, i) => { // los cuatro tramos (el primero sigue detrás de la va
 })
 const roadExt = box(6, 0.1, 1, UX, -0.04, GATE, '#D8C8AE', '#71708A'); roadExt.visible = false // tramo de la calle eterna
 box(PATH[1] - PATH[0], 0.06, PATH[3] - PATH[2], HOME_DOOR.x, -0.07, (PATH[2] + PATH[3]) / 2, '#D8C8AE', '#71708A') // caminito de la casa de Gabriela
+// Andén de concreto a los lados de la calle, con pedazos de pasto cada tanto (SECTIONS: los que sirven para el Earthing)
+GRASS_STRIPS.forEach(([x0, x1, z0, z1]) => box(x1 - x0, 0.06, z1 - z0, (x0 + x1) / 2, -0.12, (z0 + z1) / 2, '#ABA397', '#4A4452'))
+// Detrás del andén, donde están las casas y edificios: lotes de concreto (entre los edificios no hay pasto)
+GRASS.forEach(({ r: [x0, x1, z0, z1], far, axis }, i) => {
+    const L = 12, r = axis === 'x' ? (far ? [x0, x1, z0 - L, z0] : [x0, x1, z1, z1 + L]) : (far ? [x0 - L, x0, z0, z1] : [x1, x1 + L, z0, z1]) // L: hasta bien atrás de las casas (antes 4.2: detrás se veía pasto)
+    box(r[1] - r[0], 0.06, r[3] - r[2], (r[0] + r[1]) / 2, -0.125 + (i % 4) * 0.0015, (r[2] + r[3]) / 2, '#968E81', '#3F3A47') // alturas apenas distintas: donde se cruzan no parpadean
+})
+const sectionMesh = scatter(new THREE.BoxGeometry(1, 0.07, 1), '#799180', '#482642', SECTIONS.map(({ r: [x0, x1, z0, z1] }) => [(x0 + x1) / 2, -0.115, (z0 + z1) / 2, x1 - x0, 1, z1 - z0]))
 
 const curbs = [], stains = []
 SEGS.forEach((s, i) => {
     const R = ROADS[i], [a0, a1] = s.axis === 'x' ? [R[0], R[1]] : [R[2], R[3]] // de punta a punta del asfalto: la esquina exterior también lleva andén
     for (let t = a0 + 0.4; t < a1; t += 1.3) [-1, 1].forEach(side => { // andenes a los dos lados
         const [x, z] = s.axis === 'x' ? [t, s.z0 + side * 3.15] : [s.x0 + side * 3.15, t]
-        if (ROADS.some((o, j) => j !== i && inRect(o, x, z)) || inRect(grow(PATH, 0.4), x, z)) return // se abren donde empieza la otra calle y frente al caminito
+        if (ROADS.some((o, j) => j !== i && inRect(o, x, z)) || inRect(grow(PATH, 0.4), x, z) || STUBS.some(o => inRect(grow(o.r, 0.4), x, z))) return // (también donde empieza una calle cerrada: el cruce queda abierto) // se abren donde empieza la otra calle y frente al caminito
         if (curbs.some(([cx, , cz]) => Math.hypot(cx - x, cz - z) < 0.7)) return // en la esquina interior las dos filas no se montan una sobre otra
         curbs.push(s.axis === 'x' ? [x, 0.05, z] : [x, 0.05, z, 1, 1, 1, Math.PI / 2])
     })
@@ -304,6 +360,43 @@ scatter(new THREE.BoxGeometry(0.8, 0.02, 0.5), '#BF895A', '#580213', stains)
     })
     box(0.1, 1.9, 0.1, VX - 0.6, 0.8, -2.6, '#71708A', '#201826'); box(0.08, 0.8, 0.8, VX - 0.6, 1.9, -2.6, '#F2C063', '#580213') // señal de "calle cerrada"
 }
+// Calles cerradas de las esquinas: asfalto, andenes y la misma valla de obra atravesada justo después del cruce
+const valla = (x, z, axis) => { // axis: hacia dónde va la calle (la valla queda atravesada)
+    const bx = (w, h, d, u, y, v, c, t) => axis === 'x' ? box(w, h, d, x + u, y, z + v, c, t) : box(d, h, w, x + v, y, z + u, c, t) // u: a lo largo · v: a lo ancho
+    ;[-1.5, 1.5].forEach(dv => {
+        bx(0.12, 1.1, 0.12, 0, 0.45, dv - 1.2, '#A16A49', '#201826'); bx(0.12, 1.1, 0.12, 0, 0.45, dv + 1.2, '#A16A49', '#201826')
+        for (let k = 0; k < 5; k++) bx(0.14, 0.32, 0.5, 0, 0.8, dv - 1 + k * 0.5, k % 2 ? '#E4FFFF' : '#BF4E24', k % 2 ? '#71708A' : '#580213')
+    })
+}
+const stubCurbs = []
+// a los lados de cada calle cerrada: andén gris claro (3.5) y lote de concreto (como en las calles de verdad); alturas un pelo distintas para que no parpadeen
+STUBS.forEach(({ r, axis }, i) => [-1, 1].forEach(side => {
+    const band = (d0, d1, y, c, t) => {
+        const [x0, x1, z0, z1] = axis === 'x' ? [r[0], r[1], side < 0 ? r[2] - d1 : r[3] + d0, side < 0 ? r[2] - d0 : r[3] + d1] : [side < 0 ? r[0] - d1 : r[1] + d0, side < 0 ? r[0] - d0 : r[1] + d1, r[2], r[3]]
+        box(x1 - x0, 0.06, z1 - z0, (x0 + x1) / 2, y, (z0 + z1) / 2, c, t)
+    }
+    band(0, GW, -0.1185 + i * 0.0003, '#ABA397', '#4A4452'); band(GW, GW + 12, -0.1235 + i * 0.0003, '#968E81', '#3F3A47')
+}))
+STUBS.forEach(({ r, axis, sg, cx, cz }) => {
+    box(r[1] - r[0], 0.1, r[3] - r[2], (r[0] + r[1]) / 2, -0.052, (r[2] + r[3]) / 2, '#D8C8AE', '#71708A')
+    valla(axis === 'x' ? cx + sg * (HW + 5) : cx, axis === 'x' ? cz : cz + sg * (HW + 5), axis) // un poco adentro de la calle cerrada, no pegada al cruce
+    for (let t = 0.6; t < STUB_LEN; t += 1.3) [-1, 1].forEach(side => {
+        const u = (axis === 'x' ? cx : cz) + sg * (HW + t)
+        stubCurbs.push(axis === 'x' ? [u, 0.05, cz + side * 3.15] : [cx + side * 3.15, 0.05, u, 1, 1, 1, Math.PI / 2])
+    })
+})
+scatter(new THREE.BoxGeometry(0.8, 0.16, 0.34), '#A16A49', '#201826', stubCurbs)
+// el andén gris claro también da la vuelta en las cuatro esquinas de cada cruce (antes quedaba un pedazo sin andén)
+new Set(STUBS.map(o => o.cx + ',' + o.cz)).forEach(k => { const [cx, cz] = k.split(',').map(Number)
+    ;[[1, 1], [1, -1], [-1, 1], [-1, -1]].forEach(([sx, sz]) => box(GW, 0.06, GW, cx + sx * (HW + GW / 2), -0.1182, cz + sz * (HW + GW / 2), '#ABA397', '#4A4452')) })
+// y en los lados de cada esquina por donde no sale ninguna calle, el andén cruza de punta a punta (si no, quedaba un pedazo sin gris claro)
+const roadAt = (x, z) => BLOCKED.some(r => inRect(r, x, z))
+ROUTE.slice(1, -1).forEach(([cx, cz]) => [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(([dx, dz]) => {
+    if (roadAt(cx + dx * (HW + 1), cz + dz * (HW + 1))) return
+    const w = dx ? GW : HW * 2, d = dx ? HW * 2 : GW
+    box(w, 0.06, d, cx + dx * (HW + GW / 2), -0.1181, cz + dz * (HW + GW / 2), '#ABA397', '#4A4452')
+}))
+const stubPlanterMesh = scatter(new THREE.BoxGeometry(1, 0.07, 1), '#799180', '#482642', STUB_PLANTERS.map(([x0, x1, z0, z1]) => [(x0 + x1) / 2, -0.115, (z0 + z1) / 2, x1 - x0, 1, z1 - z0]))
 
 // Casas y edificios: cada uno es un grupo con su base en el origen y la puerta en su +z local (rotY la gira hacia la calle)
 const HP = [['#D8C8AE', '#71708A'], ['#A6869B', '#482642'], ['#BF895A', '#580213']]
@@ -324,11 +417,11 @@ const put = (f, x, z, ...a) => { placed.push([x, z]); f(x, z, ...a) }
 ;[5, 12, 19, 26, 33, 40, 47].forEach((x, i) => i % 2 ? put(building, x, -8, rr(8, 11), i) : put(house, x, -8, rr(3.6, 5), i)) // fila de casas sobre la calle 1 (como en el plano)
 ;[-10.5, -17.5, -24.5].forEach((x, i) => i % 2 ? put(house, x, -8, rr(3.6, 5), i + 2) : put(building, x, -8, rr(8, 11), i + 2)) // la fila sigue a la izquierda de la casa de Gabriela
 put(house, -34, -8, rr(3.6, 5), 0); put(building, -36, -17, rr(8, 11), 2)                                       // detrás de la valla: la ciudad continúa
-// Tramos 2 a 4: casas y edificios a los dos lados. Lado lejano a la cámara (arriba / izquierda en pantalla): altos.
+// Todos los tramos (también el resto de la calle 1 y su lado cercano): casas y edificios a los dos lados. Lado lejano a la cámara (arriba / izquierda en pantalla): altos.
 // Lado cercano: casas bajas, para que nunca tapen la calle ni al personaje
 const nearUni = (x, z) => Math.abs(x - UX) < 11 && z < GATE + 5
-const freeLot = (x, z, gap = 6.8) => !ROADS.some(r => inRect(grow(r, 4.6), x, z)) && !placed.some(([px, pz]) => Math.hypot(px - x, pz - z) < gap) && !nearUni(x, z)
-SEGS.slice(1).forEach(s => {
+const freeLot = (x, z, gap = 6.8) => !BLOCKED.some(r => inRect(grow(r, 4.6), x, z)) && !placed.some(([px, pz]) => Math.hypot(px - x, pz - z) < gap) && !nearUni(x, z)
+SEGS.forEach(s => {
     const r = segRect(s, 0), [a0, a1] = s.axis === 'x' ? [r[0], r[1]] : [r[2], r[3]]
     ;[-1, 1].forEach(side => {
         for (let t = a0 + rr(1, 3); t < a1; t += rr(6.8, 8)) {
@@ -342,29 +435,46 @@ SEGS.slice(1).forEach(s => {
     })
 })
 
+// Calles cerradas: también con casas y edificios a los dos lados (altos del lado lejano a la cámara, bajos del cercano) y árboles en el andén
+STUBS.forEach(({ axis, sg, cx, cz }) => {
+    ;[-1, 1].forEach(side => {
+        for (let t = HW + 4.5; t < HW + STUB_LEN + 3; t += 7.2) {
+            const u = (axis === 'x' ? cx : cz) + sg * t, [x, z] = axis === 'x' ? [u, cz + side * 8] : [cx + side * 8, u]
+            if (!freeLot(x, z)) continue
+            const ry = axis === 'x' ? (side < 0 ? 0 : Math.PI) : (side < 0 ? Math.PI / 2 : -Math.PI / 2), k = placed.length
+            if (side > 0) put(house, x, z, rr(2.4, 3.2), k, ry)
+            else if (k % 2) put(building, x, z, rr(8, 11), k, ry)
+            else put(house, x, z, rr(3.6, 5), k, ry)
+        }
+    })
+    for (let t = HW + 3.5; t < HW + STUB_LEN; t += 7) { const u = (axis === 'x' ? cx : cz) + sg * t, [x, z] = axis === 'x' ? [u, cz - 5.4] : [cx - 5.4, u]; if (!nearUni(x, z) && !inRect([UX - 9, UX + 9, GATE - 10, GATE], x, z)) tree(x, z) } // (ninguno metido en la universidad)
+})
+
 // Vegetación: juncos y flores en el pasto de los lados de la calle y detrás de la valla
-const CORNERS = ROUTE.slice(1, -1).flatMap(([cx, cz]) => [[1, 1], [1, -1], [-1, 1], [-1, -1]].map(([sx, sz]) => [Math.min(cx + sx * 3.4, cx + sx * 6.5), Math.max(cx + sx * 3.4, cx + sx * 6.5), Math.min(cz + sz * 3.4, cz + sz * 6.5), Math.max(cz + sz * 3.4, cz + sz * 6.5)])) // pasto alrededor de las esquinas (la exterior quedaba pelada)
-const DECOR = GRASS_STRIPS.map(r => grow(r, -0.4)).concat([[-41, STREET_X0 - 1.5, -12, 12]], CORNERS)
+// las esquinas también son de concreto (antes eran pasto): una losa en cada cuadrante (queda debajo de la calle, los andenes y los lotes)
+ROUTE.slice(1, -1).forEach(([cx, cz]) => [[1, 1], [1, -1], [-1, 1], [-1, -1]].forEach(([sx, sz]) => box(18.5, 0.06, 18.5, cx + sx * 9.25, -0.128, cz + sz * 5.35, '#968E81', '#3F3A47')))
+const DECOR = SECTIONS.map(s => grow(s.r, -0.4)).concat(STUB_PLANTERS.map(r => grow(r, -0.4)), [[-41, STREET_X0 - 1.5, -12, 12]])
 const pick = () => { const a = DECOR[Math.floor(rng() * DECOR.length)]; return [rr(a[0], a[1]), rr(a[2], a[3])] }
 const reeds = []; for (let k = 0; k < 260; k++) { const [x, z] = pick(); for (let j = 0; j < 3; j++) { const sy = rr(0.7, 1.4); reeds.push([x + rr(-.25, .25), -0.15 + 0.45 * sy, z + rr(-.25, .25), 1, sy, 1, 0]) } }
 const reedMesh = scatter(new THREE.ConeGeometry(0.12, 0.9, 5), '#D8C8AE', '#71708A', reeds)
-grassOf(field, '#799180', '#482642', '#6FA86B'); grassOf(reedMesh, '#D8C8AE', '#71708A', '#8DBE7A') // el pasto se pinta de verde en el Earthing
+grassOf(field, '#799180', '#482642', '#6FA86B'); grassOf(reedMesh, '#D8C8AE', '#71708A', '#8DBE7A'); grassOf(sectionMesh, '#799180', '#482642', '#5FB04F'); grassOf(stubPlanterMesh, '#799180', '#482642', '#5FB04F') // en el Earthing el pasto se satura de verde
 scatter(new THREE.SphereGeometry(0.09, 6, 4), '#F2C063', '#790A0E', Array.from({ length: 420 }, () => { const [x, z] = pick(); return [x, -0.08, z] }))
 // Árboles: los de la calle 1 a mano; en los otros tramos, entre las casas del lado lejano; y otros sueltos por el campo
-;[[9, -5], [16, -5.4], [30, -5.2], [37, -5.6], [44, -5.4], [51, -5], [-3, 6], [6, 8], [14, 8.5], [33, 8], [42, 8], [50, 7.6],
-  [-9, -5.4], [-21, -5.6], [-27.5, -5.2], [-8, 8], [-15, 7.4], [-22, 8.6], [-28, 7.2],
+;[[9, -5], [16, -5.4], [30, -5.2], [37, -5.6], [44, -5.4], [51, -5], // (los del lado cercano se quitaron: ahí ahora hay casas)
+  [-9, -5.4], [-21, -5.6], [-27.5, -5.2],
   [-34, -4], [-37, 3], [-35, 9], [-39, -9], [-33, -13], [-38, 15], [-29, 14], [-18, 15], [-6, 14], [8, 15], [24, 14],
   [-14, -15], [-27, -14], [-21, -19], [-7, -16]].forEach(([x, z]) => tree(x + rr(-.5, .5), z))
 SEGS.slice(1).forEach(s => {
     const r = segRect(s, 0), [a0, a1] = s.axis === 'x' ? [r[0], r[1]] : [r[2], r[3]]
     for (let t = a0 + rr(2, 5); t < a1; t += rr(7, 11)) {
         const [x, z] = s.axis === 'x' ? [t, s.z0 - 5.4] : [s.x0 - 5.4, t]
-        if (!ROADS.some(o => inRect(grow(o, 0.5), x, z)) && !nearUni(x, z)) tree(x, z)
+        if (!BLOCKED.some(o => inRect(grow(o, 0.5), x, z)) && !nearUni(x, z)) tree(x, z)
     }
 })
-for (let k = 0, n = 0; k < 400 && n < 70; k++) { // árboles sueltos lejos de la calle y de las casas
+for (let k = 0, n = 0; k < 400 && n < 35; k++) { // árboles sueltos detrás de las casas: solo en la franja que alcanza a ver la cámara (más lejos no se ven y solo pesaban)
     const x = rr(FX0 + 3, FX1 - 3), z = rr(FZ0 + 3, FZ1 - 3)
-    if (ROADS.some(r => inRect(grow(r, 9), x, z)) || placed.some(([px, pz]) => Math.hypot(px - x, pz - z) < 6) || nearUni(x, z) || (x < STREET_X0 && Math.abs(z) < 4)) continue
+    if (!BLOCKED.some(r => inRect(grow(r, 18), x, z))) continue
+    if (BLOCKED.some(r => inRect(grow(r, 9), x, z)) || placed.some(([px, pz]) => Math.hypot(px - x, pz - z) < 6) || nearUni(x, z) || (x < STREET_X0 && Math.abs(z) < 4)) continue
     tree(x, z); n++
 }
 
@@ -387,7 +497,7 @@ SEGS.forEach((s, i) => {
     const r = segRect(s, 0), [a0, a1] = s.axis === 'x' ? [Math.max(r[0], STREET_X0), r[1]] : [r[2], r[3]]
     for (let t = a0 + 4, j = 0; t < a1 - 2; t += 9, j++) {
         const [x, z] = s.axis === 'x' ? [t, s.z0 - 16] : [s.x0 - 16, t]
-        if (!ROADS.some(o => inRect(grow(o, 8), x, z)) && !nearUni(x, z)) mid.push(s.axis === 'x' ? [x, z, 6, 6 + (j * 3) % 5, 4] : [x, z, 4, 6 + (j * 3) % 5, 6])
+        if (!BLOCKED.some(o => inRect(grow(o, 8), x, z)) && !nearUni(x, z)) mid.push(s.axis === 'x' ? [x, z, 6, 6 + (j * 3) % 5, 4] : [x, z, 4, 6 + (j * 3) % 5, 6])
     }
     for (let t = a0 + 6; t < a1 - 3; t += rr(9, 12)) {
         const [x, z] = s.axis === 'x' ? [t, s.z0 - 3.5] : [s.x0 - 3.5, t]
@@ -395,8 +505,8 @@ SEGS.forEach((s, i) => {
     }
 })
 makeLayer('MID', mid)
-makeLayer('INFRA', posts)
-makeLayer('FRONT', row(12, -27, 7, (x, i) => [x, 6.8, 1.2 + (i % 2) * 0.6, 0.8 + (i % 3) * 0.3, 1]))
+posts.forEach(([x, z, w, h, d]) => box(w, h, d, x, h / 2 - 0.15, z, '#BF895A', '#580213')) // postes fijos: antes se "reconstruían" tras cada minijuego y cambiaban de forma, tamaño y color de golpe
+// (sin capa de escombros al frente de la calle 1: ahora ahí hay casas)
 
 // Fallas de la ansiedad (desde el nivel de falla 1: sube al perder un minijuego y baja al ganar uno): copias translúcidas de postes, muros y pedazos de edificio que titilan y
 // saltan de lugar, como si la ciudad no terminara de "cargar". Mientras más ansiedad, más aparecen (ver updateGhosts)
@@ -455,8 +565,12 @@ solid(0.5, 3.6, BX + 5.8, 0)                                   // cabina: no se 
 }
 ;[-3.6, -1.2, 1.2, 3.6].forEach((dx, i) => {                     // bancas: fila del fondo y fila de adelante
     const c = i % 2 ? ['#A6869B', '#482642'] : ['#799180', '#580213']
-    furn(2, 0.45, 0.7, BX + dx, 0.225, -1.55, ...c); box(2, 0.7, 0.12, BX + dx, 0.8, -1.95, ...c); SEATS.push({ x: BX + dx, z: -1.55, face: 0, taken: false })
-    if (Math.abs(dx) < 3) { furn(2, 0.45, 0.7, BX + dx, 0.225, 1.55, ...c); box(2, 0.55, 0.12, BX + dx, 0.72, 1.95, ...c); SEATS.push({ x: BX + dx, z: 1.55, face: Math.PI, taken: false }) } // sin banca junto a las puertas
+    const seat = (z, back, bz, bh, face) => { // banca con su brillo suave (main.js lo enciende en las libres mientras estás de pie)
+        const m = outlined(furn(2, 0.45, 0.7, BX + dx, 0.225, z, ...c), 2, 0.45, 0.7, 0.12, 0, SOFT); box(2, bh, 0.12, BX + dx, back, bz, ...c)
+        SEATS.push({ x: BX + dx, z, face, taken: false, glow: m.userData.outline })
+    }
+    seat(-1.55, 0.8, -1.95, 0.7, 0)
+    if (Math.abs(dx) < 3) seat(1.55, 0.72, 1.95, 0.55, Math.PI) // sin banca junto a las puertas
 })
 const poleMat = mat('#D8C8AE', '#71708A'), poleGeo = new THREE.CylinderGeometry(0.05, 0.05, 2.3, 8)
 ;[-2.4, 0, 2.4].forEach(dx => { const p = new THREE.Mesh(poleGeo, poleMat); p.position.set(BX + dx, 1.15, 0); cur.add(p) })
@@ -479,26 +593,32 @@ const cityBlocks = []; let nb = 0; for (let x = 0; x < CITY_P; x += rr(2.4, 3.4)
     cityG.add(g)
 })
 
-// 11. Objetos interactivos: pos = donde se para el personaje · mark = dónde flota la flecha del objetivo
+// 11. Objetos interactivos: pos = donde se para el personaje · mark = dónde flota la flecha del objetivo · glow = lo que brilla cuando es el objetivo
 const V = (x, z) => new THREE.Vector3(x, 0, z)
 const S = GROUPS.STREET
 export const props = {
-    cama: { pos: V(-1.6, 0.1), mesh: null, mark: { x: -1.5, y: 2.1, z: -2.2 } },
+    cama: { pos: V(-2.8, -1.9), mesh: null, // pos: donde queda de pie al levantarse (a la izquierda de la cama, junto a la maleta)
+        mark: { x: -1.5, y: 2.1, z: -2.2 } },
     armario: { pos: V(-6.6, 2.2), mesh: wardrobe, mark: { x: -7.95, y: 3.1, z: 2.2 } },
     celular: { pos: V(-6.1, -0.5), mesh: phone },
     maleta: { pos: V(-3.6, -1.9), mesh: bag },
     puerta: { pos: V(-5, 2.6), mesh: null, mark: { x: -5, y: 3.1, z: 3.3 } },
-    mama: { pos: V(HX - 2, -0.5), mesh: null, mark: { x: HX - 2, y: 2.7, z: -2.2 } },
+    mama: { pos: V(HX - 2, -0.5), mesh: null, mark: { x: HX - 2, y: 2.7, z: -2.2 } }, // mamá no brilla: solo la flecha encima
     desayuno: { pos: V(HX - 3.4, -0.5), mesh: breakfast, mark: { x: HX - 3.4, y: 1.9, z: -0.95 } },
     salida: { pos: V(HX + 5.8, 0), mesh: null, mark: { x: HX + 6.6, y: 3.0, z: 0 } },
     // MIO por fuera (temporal). rect = huella en planta (para medir la cercanía)
-    bus: { pos: V(W.busX, 1), mesh: box(6, 2, 2.2, W.busX + 4, 1, -1.8, '#2F7DAA', '#482642', S),
+    bus: { pos: V(W.busX, 1), mesh: outlined(box(6, 2, 2.2, W.busX + 4, 1, -1.8, '#2F7DAA', '#482642', S), 6, 2, 2.2, 0.2, 0, SOFT),
         rect: [W.busX + 1, W.busX + 7, -2.9, -0.7], mark: { x: W.busX + 4, y: 3.1, z: -1.8 } }
 }
-box(5.6, 0.6, 0.05, W.busX + 4, 1.4, -0.68, '#D8C8AE', '#71708A', S) // franja de ventanas del MIO
+Object.values(props).forEach(p => { p.glow ||= p.mesh?.userData.outline })
+props.bus.mesh.add(box(5.6, 0.6, 0.05, 0, 0.4, 1.12, '#D8C8AE', '#71708A', props.bus.mesh)) // franja de ventanas del MIO
+// El MIO frente a la universidad: solo aparece si aguantaste el viaje completo (y entonces desaparece el del paradero)
+export const uniBus = props.bus.mesh.clone(); uniBus.rotation.y = Math.PI / 2; uniBus.position.set(UX + 1.9, 1, GATE + 10); uniBus.visible = false; S.add(uniBus)
+uniBus.children.forEach(c => { if (c.material === SOFT) c.visible = false })
 solid(0.7, 0.4, -3.6, -2.95, () => props.maleta.mesh.visible, 'HOUSE')
 solid(6, 2.2, W.busX + 4, -1.8, () => props.bus.mesh.visible, 'STREET')
-export function resetProps() { Object.values(props).forEach(p => { if (!p.mesh) return; p.mesh.visible = true; if (p.mesh.userData.outline) p.mesh.userData.outline.visible = true }) }
+solid(2.2, 6, UX + 1.9, GATE + 10, () => uniBus.visible, 'STREET')
+export function resetProps() { Object.values(props).forEach(p => { if (p.mesh) p.mesh.visible = true }); uniBus.visible = false }
 
 // Marcador del objetivo actual
 export const marker = new THREE.Mesh(new THREE.ConeGeometry(0.25, 0.5, 8), new THREE.MeshBasicMaterial({ color: 0xf2c063 }))
@@ -517,7 +637,8 @@ function applyTheme(a) {
     themed.forEach(({ m, a: c0, b: c1 }) => m.color.copy(c0).lerp(c1, a))
     if (!(scene.background instanceof THREE.Color)) scene.background = new THREE.Color()
     let base = bgClear
-    if (runtime.postQuake) { base = bgPost.copy(bgClear).lerp(bgDark, 0.65); base.getHSL(hsl); base.setHSL(hsl.h, hsl.s * 0.3, hsl.l) }
+    const dull = Math.min(1, Math.max(0, (runtime.levelVis ?? -1) + 1)) // nivel -1: cielo normal · nivel 0 o más: apagado (el final bueno lo devuelve)
+    if (dull > 0) { bgPost.copy(bgClear).lerp(bgDark, 0.65 * dull); bgPost.getHSL(hsl); bgPost.setHSL(hsl.h, hsl.s * (1 - 0.7 * dull), hsl.l); base = bgPost }
     scene.background.copy(base).lerp(bgDark, a)
 }
 
@@ -545,13 +666,13 @@ const cold = new THREE.Color(0x8899bb), warm = new THREE.Color(0xffd9a0)
 let T = 0, cityOff = 0, grassK = 0, grassWas = false
 export function updateEnvironment(dt = 0) {
     const p = runtime.envProgress, a = runtime.anxiety
-    T += dt; OUTLINE.opacity = 0.7 + 0.3 * Math.sin(T * 5)
+    T += dt; OUTLINE.opacity = 0.7 + 0.3 * Math.sin(T * 5); SOFT.opacity = 0.28 + 0.14 * Math.sin(T * 3)
     if (runtime.space === 'BUS') { // el MIO solo avanza cuando te sientas y va frenando mientras el sismo crece
         if (runtime.busMoving) cityOff = (cityOff + dt * (2.5 + a * 3) * (1 - Math.min(1, runtime.quake))) % CITY_P
         cityG.position.x = -cityOff
     }
 
-    const d = a * a * CONFIG.anxiety.distort, q = runtime.quake
+    const va = runtime.visAnx ?? a, d = va * va * CONFIG.anxiety.distort, q = runtime.quake // los edificios se deforman con la ansiedad visible (suave), no con la del instante
     warp.forEach(e => {
         const { g, x, y, ph } = e, sq = q + e.sh // un edificio asustado tiembla como en el sismo
         g.rotation.set(Math.sin(T * 0.6 + ph * 1.7) * 0.12 * d, e.ry, Math.sin(T * 0.8 + ph) * 0.26 * d + Math.sin(T * 21 + ph) * 0.06 * sq) // el giro en Y se repone: la inclinación lo altera
@@ -562,18 +683,18 @@ export function updateEnvironment(dt = 0) {
         if (e.tilt) { tiltAxis.set(e.dz, 0, -e.dx); g.quaternion.premultiply(tiltQ.setFromAxisAngle(tiltAxis, e.tilt)) } // se inclina hacia el personaje
     })
     updateGhosts()
-    sets.forEach(({ destroyed, restored }) => {
-        destroyed.children.forEach(m => m.material.opacity = 1 - p); restored.children.forEach(m => m.material.opacity = p)
-        destroyed.visible = p < 1; restored.visible = p > 0
-        restored.position.y = -(1 - p) * 1.5; destroyed.position.y = -p * 0.8
+    sets.forEach(s => { // cada pieza: primero se encoge lo destruido y después crece lo reconstruido (rápido, desde el suelo)
+        const want = p > s.th + 0.001 || p >= 1 ? 1 : 0
+        if (s.k !== want) s.k += Math.sign(want - s.k) * Math.min(Math.abs(want - s.k), dt * 2.5)
+        growFrom(s.d, Math.max(0, 1 - s.k * 2)); growFrom(s.r, Math.max(0, s.k * 2 - 1))
     })
-    const key = a + (runtime.postQuake ? 10 : 0)
-    if (Math.abs(key - lastA) > 0.002) { lastA = key; applyTheme(a) }
+    const pal = runtime.palette ?? a, key = pal + (runtime.levelVis ?? -1) * 10 // la paleta sigue el nivel de ansiedad (anxiety.js), no solo la crisis del momento
+    if (Math.abs(key - lastA) > 0.002) { lastA = key; applyTheme(pal) }
     updateEndless(dt)
 
-    const gt = runtime.grassGreen ? 1 : 0
+    const gt = runtime.grassGreen ? 1 : 0 // en el Earthing el pasto se pone más verde, pero sin pasarse de la saturación del nivel de ansiedad (antes quedaba más vivo que el resto)
     if (grassK !== gt) grassK += Math.sign(gt - grassK) * Math.min(Math.abs(gt - grassK), dt * 1.5)
-    if (grassK > 0 || grassWas) { grass.forEach(({ m, a: c0, b: c1, g: cg }) => m.color.copy(c0).lerp(c1, a).lerp(cg, grassK)); grassWas = grassK > 0 }
+    if (grassK > 0 || grassWas) { grass.forEach(({ m, a: c0, b: c1, g: cg }) => m.color.copy(c0).lerp(c1, pal).lerp(cg, grassK * 0.45)); grassWas = grassK > 0 }
     ambient.color.copy(cold).lerp(warm, p); sun.color.copy(cold).lerp(warm, p)
     sun.intensity = CONFIG.env.light * (0.8 + 0.5 * p)
 }

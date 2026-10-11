@@ -14,17 +14,18 @@
         5.2 Escena
         5.3 Contenido
         5.4 Articulos
-        5.5 Recursos
-            5.5.1 Imagenes
-        5.6 Tarjetas
-        5.7 Teléfonos
-        5.8 Avisos
-        5.9 Linea de ayuda
-        5.10 Advertencia
-        5.11 Brigada Topos
-        5.12 Página de respiración (verde salvia, a partir de --color-terceario)
-        5.13 Organización Mundial de la Salud
-        5.14 Página de prevención (rojizo)
+        5.5 Mapa de apoyo
+        5.6 Recursos
+            5.6.1 Imagenes
+        5.7 Tarjetas
+        5.8 Teléfonos
+        5.9 Avisos
+        5.10 Linea de ayuda
+        5.12 Advertencia
+        5.12 Brigada Topos
+        5.13 Página de respiración
+        5.14 Organización Mundial de la Salud
+        5.15 Página de prevención
     6. Footer
     7. Reactive
 
@@ -402,6 +403,16 @@ body.pagina-narrativa
     height: 100%;
 }
 
+.webgl-nitida /* la protagonista nítida encima del mundo borroso (nivel 3 de ansiedad) */
+{
+    position: fixed;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
 /* 5. Main ----------------- */
 main
 {
@@ -724,10 +735,9 @@ main
         background: linear-gradient(to top, rgba(32, 24, 38, 0.8), rgba(32, 24, 38, 0.15) 55%, transparent);
     }
 
-    /* Mapa de apoyo (los elementos los crea src/mapa/mapa.js) */
+    /* 5.5 Mapa de apoyo */
     .articulo-mapa
     {
-        /* Color de cada categoría: marcadores, etiquetas y líneas */
         --tipo-psicologica: #A6869B;
         --tipo-emergencia: #BF4E24;
         --tipo-hospital: #799180;
@@ -740,7 +750,7 @@ main
     .articulo-mapa [data-tipo="hospital"] { --tipo: var(--tipo-hospital); }
     .articulo-mapa [data-tipo="desastres"] { --tipo: var(--tipo-desastres); }
     .articulo-mapa [data-tipo="apoyo"] { --tipo: var(--tipo-apoyo); }
-    .articulo-mapa .mapa-linea[data-franja="verde"] { --tipo: var(--color-terceario); } /* líneas de socorro y servicios: franja verde para no repetir dos columnas naranjas */
+    .articulo-mapa .mapa-linea[data-franja="verde"] { --tipo: var(--color-terceario); }
 
     .mapa-filtros
     {
@@ -798,7 +808,7 @@ main
         isolation: isolate;
     }
 
-    .mapa-contenedor::before /* sombra desplazada, como las tarjetas */
+    .mapa-contenedor::before
     {
         content: "";
         position: absolute;
@@ -818,7 +828,6 @@ main
         font-family: "Outfit", sans-serif;
     }
 
-    /* Calles de OpenStreetMap un poco más cálidas, para que combinen con la paleta del proyecto */
     .mapa-lienzo .leaflet-tile-pane
     {
         filter: saturate(0.45) sepia(0.3) brightness(1.04) contrast(0.95);
@@ -835,7 +844,6 @@ main
         background: rgba(241, 230, 212, 0.85);
     }
 
-    /* Marcadores: Leaflet mueve .mapa-pin; el círculo con el ícono va adentro */
     .mapa-pin
     {
         background: none;
@@ -865,7 +873,7 @@ main
 
     .mapa-pin--activo
     {
-        z-index: 1000 !important; /* por encima de los demás marcadores */
+        z-index: 1000 !important;
     }
 
     .mapa-pin--activo .mapa-marcador
@@ -880,7 +888,7 @@ main
         position: absolute;
         top: 16px;
         left: 16px;
-        z-index: 1001; /* por encima de las capas de Leaflet */
+        z-index: 1001;
         width: min(360px, calc(100% - 32px));
         max-height: calc(100% - 32px);
         overflow-y: auto;
@@ -944,7 +952,7 @@ main
         outline: none;
     }
 
-    .mapa-ficha-aviso /* puntos temporales de la emergencia: confirmar antes de ir */
+    .mapa-ficha-aviso
     {
         padding: 8px 12px;
         border: 1.5px solid var(--color-atencion);
@@ -1178,20 +1186,20 @@ main
         margin-top: 8px;
     }
 
-/* 5.5 Recursos */
+/* 5.6 Recursos */
 
-    main > article
+    main > article /* menos espacio entre artículos (antes 44px arriba y abajo: quedaba un hueco grande) */
     {
         display: flex;
         flex-direction: column;
-        gap: 28px;
-        padding-top: 44px;
-        padding-bottom: 44px;
+        gap: 20px;
+        padding-top: 22px;
+        padding-bottom: 22px;
     }
 
     .decoracion-titulo + article
     {
-        padding-top: 56px;
+        padding-top: 40px;
     }
 
     main > article:last-of-type
@@ -1252,7 +1260,7 @@ main
         max-width: none;
     }
 
-        /* 5.5.1 Imagenes */
+        /* 5.6.1 Imagenes */
         .imagen-apoyo
         {
             position: relative;
@@ -1271,7 +1279,7 @@ main
             object-fit: cover;
         }
 
-    /* 5.6 Tarjetas */
+    /* 5.7 Tarjetas */
     .tarjetas
     {
         display: grid;
@@ -1360,7 +1368,7 @@ main
         line-height: 1;
     }
 
-    /* 5.7 Teléfonos */
+    /* 5.8 Teléfonos */
     .telefonos
     {
         display: grid;
@@ -1412,7 +1420,7 @@ main
         grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
     }
 
-    /* 5.8 Avisos */
+    /* 5.9 Avisos */
     .aviso
     {
         position: relative;
@@ -1455,7 +1463,7 @@ main
         color: var(--color-atencion);
     }
 
-    /* 5.9 Linea de ayuda */
+    /* 5.10 Linea de ayuda */
     .linea-ayuda
     {
         display: flex;
@@ -1480,12 +1488,12 @@ main
         color: var(--color-principal);
     }
 
-    /* 5.10 Advertencia */
-html.modal-abierto
-{
-    overflow: hidden;
-    scrollbar-gutter: stable;
-}
+    /* 5.11 Advertencia */
+    html.modal-abierto
+    {
+        overflow: hidden;
+        scrollbar-gutter: stable;
+    }
 
     .advertencia
     {
@@ -1702,7 +1710,7 @@ html.modal-abierto
     .advertencia-accion--volver:hover svg { transform: translateX(-4px); }
     .advertencia-accion--seguir:hover svg { transform: translateX(4px); }
 
-    /* 5.11 Brigada Topos (herramientas-prevencion.html): paleta de topos.mx — rojo de rescate, rojo coral y negro (atención y prevención) */
+    /* 5.12 Brigada Topos */
     .seccion-topos
     {
         --topos-rojo: #D10A0A;       /* rojo intenso de la franja y los botones de topos.mx */
@@ -1710,6 +1718,7 @@ html.modal-abierto
         --topos-carbon: #121212;     /* negro de la sección de operativos */
         --topos-texto: #FF6A5F;      /* rojo claro para textos sobre negro (el rojo puro casi no se lee) */
         position: relative;
+        margin-top: 40px; /* mismo aire que la sección de la OMS antes del patrocinador */
         color: var(--color-soporte-claro);
         background: var(--topos-carbon);
         box-shadow: 0 0 0 100vmax var(--topos-carbon); /* fondo de borde a borde aunque el artículo tenga margen lateral */
@@ -1733,7 +1742,7 @@ html.modal-abierto
         height: auto;
         padding: 14px;
         border-radius: 50%;
-        background: var(--topos-rojo); /* el logo es blanco: va sobre el rojo de la brigada */
+        background: var(--topos-rojo);
         flex-shrink: 0;
     }
 
@@ -1789,35 +1798,35 @@ html.modal-abierto
         .topos-cabecera { flex-direction: column; align-items: flex-start; }
     }
 
-    /* 5.12 Página de técnicas de respiración: tonos que salen de --color-terceario (verde salvia), más cercanos a un espacio de terapia.
-       Todo se mezcla a partir de esa variable: si cambia el verde del :root, cambia toda la página */
+    /* 5.13 Página de técnicas de respiración */
     :root:has(body.pagina-respiracion)
     {
-        --color-acento: color-mix(in srgb, var(--color-terceario) 22%, white);         /* fondo: salvia muy claro */
-        --color-tarjeta-sombra: var(--color-terceario);                                /* sombra de tarjetas y avisos */
+        --color-acento: color-mix(in srgb, var(--color-terceario) 22%, white);
+        --color-tarjeta-sombra: var(--color-terceario); 
         --color-scroll-pista: color-mix(in srgb, var(--color-terceario) 40%, white);
-        --respiracion-titulo: #1C7A6E;                                                  /* verde azulado saturado (de la pared de las fotos): títulos y brillo del título grande */
+        --respiracion-titulo: #1C7A6E;
     }
 
-    :root:has(body.pagina-respiracion):not(.scroll-oscuro) { --scroll-pulgar: color-mix(in srgb, var(--color-terceario) 75%, black); } /* sobre el header y el footer oscuros el scroll sigue cambiando como en las demás páginas */
+    :root:has(body.pagina-respiracion):not(.scroll-oscuro) { --scroll-pulgar: color-mix(in srgb, var(--color-terceario) 75%, black); }
 
     body.pagina-respiracion .tarjeta { background: color-mix(in srgb, var(--color-terceario) 6%, white); }
-    body.pagina-respiracion .titulo { color: var(--respiracion-titulo); }                                  /* más saturado y llamativo; se lee bien sobre el fondo claro */
-    body.pagina-respiracion .tarjeta-numero { background: color-mix(in srgb, var(--color-terceario) 45%, white); } /* los números de los pasos siguen la paleta de la página */
-    body.pagina-respiracion .aviso li::marker { color: var(--color-terceario); } /* viñetas de "¿Cuándo consultar a un profesional?" (antes naranjas) */
-    body.pagina-respiracion #titulo-pagina { color: #F4FBF9; text-shadow: 0 2px 16px color-mix(in srgb, var(--respiracion-titulo) 85%, transparent), 0 0 4px color-mix(in srgb, var(--respiracion-titulo) 45%, transparent); } /* blanco con brillo verde azulado detrás, como el título de prevención */
+    body.pagina-respiracion .titulo { color: var(--respiracion-titulo); }
+    body.pagina-respiracion .tarjeta-numero { background: color-mix(in srgb, var(--color-terceario) 45%, white); } 
+    body.pagina-respiracion .aviso li::marker { color: var(--color-terceario); } 
+    body.pagina-respiracion #titulo-pagina { color: #F4FBF9; text-shadow: 0 2px 16px color-mix(in srgb, var(--respiracion-titulo) 85%, transparent), 0 0 4px color-mix(in srgb, var(--respiracion-titulo) 45%, transparent); } 
 
-    /* 5.13 Organización Mundial de la Salud (respiracion-consciente.html): azul de la OMS sobre blanco */
+    /* 5.14 Organización Mundial de la Salud */
     .seccion-oms
     {
-        --oms-azul: #009ADE;         /* azul institucional de la OMS */
-        --oms-azul-oscuro: #0A3D62;  /* azul marino para textos */
+        --oms-azul: #009ADE; 
+        --oms-azul-oscuro: #0A3D62; 
         --oms-fondo: #F3FAFE;
         background: var(--oms-fondo);
-        box-shadow: 0 0 0 100vmax var(--oms-fondo); /* fondo de borde a borde aunque el artículo tenga margen lateral */
+        box-shadow: 0 0 0 100vmax var(--oms-fondo); 
         clip-path: inset(0 -100vmax);
         border-top: 8px solid var(--oms-azul);
-        border-bottom: 8px solid var(--oms-azul); /* raya azul antes del footer, como la de Topos en la página de prevención */
+        border-bottom: 8px solid var(--oms-azul); 
+        margin-top: 40px; 
         color: var(--oms-azul-oscuro);
     }
 
@@ -1852,7 +1861,7 @@ html.modal-abierto
 
     body.pagina-respiracion .oms-titulo { color: var(--oms-azul-oscuro); }
 
-    body .seccion-oms .tarjeta--oms { border-color: var(--oms-azul); background: #fff; } /* body: le gana al fondo verde de las tarjetas de esta página */
+    body .seccion-oms .tarjeta--oms { border-color: var(--oms-azul); background: #fff; } 
     .tarjeta--oms::before { background: var(--oms-azul); }
     .tarjeta--oms .subtitulo { color: var(--oms-azul-oscuro); }
 
@@ -1886,22 +1895,21 @@ html.modal-abierto
         .oms-cabecera { flex-direction: column; align-items: flex-start; }
     }
 
-    /* 5.14 Página de recursos de prevención: tonos rojizos, en la línea de la Brigada Topos (atención y prevención) */
+    /* 5.15 Página de recursos de prevención */
     :root:has(body.pagina-prevencion)
     {
-        --color-acento: #F3DFDA;          /* fondo: rosado muy claro */
-        --color-tarjeta-sombra: #D9423B;  /* sombra de tarjetas y teléfonos: rojo coral de Topos */
+        --color-acento: #F3DFDA;    
+        --color-tarjeta-sombra: #D9423B; 
         --color-scroll-pista: #E8C6C0;
     }
 
-    :root:has(body.pagina-prevencion):not(.scroll-oscuro) { --scroll-pulgar: #B3140F; } /* sobre el header y el footer oscuros el scroll sigue cambiando como en las demás páginas */
-
+    :root:has(body.pagina-prevencion):not(.scroll-oscuro) { --scroll-pulgar: #B3140F; } 
     body.pagina-prevencion .tarjeta:not(.tarjeta--topos),
     body.pagina-prevencion .telefono { background: #FFF7F5; }
-    body.pagina-prevencion main > article:not(.seccion-topos) .titulo { color: #A3150F; } /* rojo oscuro: se lee bien sobre el fondo claro */
+    body.pagina-prevencion main > article:not(.seccion-topos) .titulo { color: #A3150F; } 
     body.pagina-prevencion .tarjeta-numero { background: #F2A59C; }
     body.pagina-prevencion .telefono-numero { color: #B3140F; }
-    body.pagina-prevencion #titulo-pagina { color: #FFF3EF; text-shadow: 0 2px 14px rgba(90, 12, 8, 0.55); } /* blanco cálido con sombra roja: el celeste general no combinaba con esta paleta */
+    body.pagina-prevencion #titulo-pagina { color: #FFF3EF; text-shadow: 0 2px 14px rgba(90, 12, 8, 0.55); } 
 
 /* 6. Footer ----------------- */
 .footer {
@@ -1924,7 +1932,7 @@ html.modal-abierto
 .patrocinadores-titulo
 {
     color: var(--color-soporte-claro);
-    font-family: "Outfit", sans-serif; /* sin esto caía en la fuente serif del navegador */
+    font-family: "Outfit", sans-serif; 
     font-size: 14px;
     font-weight: 600;
     text-transform: uppercase;
@@ -1970,7 +1978,14 @@ html.modal-abierto
     /* 0. Generales / Colores */
     @media (max-width: 768px)
     {
-        :root { --padding-pagina: 5%; }
+        :root { --padding-pagina: 5%; --tamano-texto: 1rem; } /* en celular el texto de 1.15rem se veía muy grande */
+    }
+
+    /* 2. Header / Cabecera */
+    @media (max-width: 768px)
+    {
+        #titulo-header { font-size: 15px; }
+        #cabecera-principal { padding: 14px 4% 11px; }
     }
 
     /* 2.1 Menú */
@@ -2010,22 +2025,30 @@ html.modal-abierto
     /* 5.1 Titulos */
     @media (max-width: 768px)
     {
-        #titulo-pagina,
-        .escena-contenido .titulo-principal
+        #titulo-pagina
         {
             font-size: 2.5rem;
         }
+
+        .escena-contenido .titulo-principal
+        {
+            font-size: clamp(1.9rem, 9vw, 2.4rem);
+            line-height: 1.05;
+        }
     }
 
-    /* 5.2 Escena */
+    /* 5.2 Escena: en celular la sección crece con su contenido. Antes tenía alto fijo con overflow oculto:
+       el título quedaba cortado arriba y la muestra 3D abajo (de ahí la línea rara sobre el fundido) */
     @media (max-width: 768px)
     {
         .escena
         {
             flex-direction: column;
-            justify-content: center;
-            gap: 24px;
-            padding: 32px 5% 80px;
+            justify-content: flex-start;
+            gap: 20px;
+            height: auto;
+            min-height: calc(100svh - 60px);
+            padding: 36px 5% 96px;
         }
 
         .escena-contenido
@@ -2033,6 +2056,7 @@ html.modal-abierto
             flex: 0 0 auto;
             max-width: 100%;
             align-items: center;
+            gap: 16px;
         }
 
         .escena-contenido .titulo-principal,
@@ -2041,12 +2065,18 @@ html.modal-abierto
             text-align: center;
         }
 
+        .escena-parrafo
+        {
+            font-size: 0.98rem;
+            line-height: 1.45;
+        }
+
         .escena-canvas
         {
-            flex: 0 0 40%;
+            flex: 0 0 auto;
             width: 100%;
             max-width: none;
-            height: auto;
+            height: clamp(240px, 42svh, 360px);
         }
     }
 
@@ -2056,6 +2086,12 @@ html.modal-abierto
         .recursos-grid
         {
             grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        .recurso-caja
+        {
+            aspect-ratio: 16 / 9; /* en celular las fotos en 4:3 quedaban muy altas */
         }
     }
 
