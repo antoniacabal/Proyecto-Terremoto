@@ -61,6 +61,7 @@ export function initDebug(actions) {
     dif.add(CONFIG, 'maxFailures', 1, 10, 1).name('fallos seguidos para perder')
     dif.add(CONFIG.crisis, 'first', 1, 40, 1).name('1.ª crisis (s)'); dif.add(CONFIG.crisis, 'min', 2, 40, 1).name('crisis mín (s)'); dif.add(CONFIG.crisis, 'max', 2, 60, 1).name('crisis máx (s)')
     dif.add(CONFIG.crisis, 'startAnxiety', .3, 1, .01).name('ansiedad al iniciar crisis'); dif.add(CONFIG.anxiety, 'failPenalty', 0, .5, .01).name('castigo por fallar')
+    dif.add(CONFIG.street, 'crisisMin', 2, 40, 1).name('calle: crisis mín (s)'); dif.add(CONFIG.street, 'crisisMax', 2, 60, 1).name('calle: crisis máx (s)')
     dif.add(CONFIG.bus, 'crisisMin', 2, 30, 1).name('MIO: crisis mín (s)'); dif.add(CONFIG.bus, 'crisisMax', 2, 40, 1).name('MIO: crisis máx (s)')
 
     // 6. Ansiedad, calle eterna y escenario

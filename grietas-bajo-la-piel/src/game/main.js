@@ -225,6 +225,7 @@ const leaveBus = () => {
     const p = Math.min(1, Math.max(0, 1 - runtime.rideLeft / B.time)), d0 = W.busX + 3 - STREET_X0
     const [x, z, s] = routePoint(d0 + p * (ROUTE_LEN - d0 - 10))
     s.axis === 'x' ? goStreet(x, z + 1.5) : goStreet(x + 1.5, z)
+    runtime.nextCrisis = rand(CONFIG.street.crisisMin, CONFIG.street.crisisMax) // ya en la calle: su ritmo, no el del MIO
 }
 const rideEnd = () => transition(() => { // aguantaste el viaje: el MIO te deja frente a la universidad (y ya no está en el paradero de la casa)
     busDone = true; props.bus.mesh.visible = false; uniBus.visible = true
@@ -349,7 +350,7 @@ breathing.init({
     onCycle: (ok) => {
         const bus = runtime.space === 'BUS'
         runtime.stress = 0 // los choques de antes de la crisis ya no cuentan para la siguiente
-        ui.showBreath(false); audio.result(ok); runtime.nextCrisis = bus ? rand(B.crisisMin, B.crisisMax) : rand(C.min, C.max)
+        ui.showBreath(false); audio.result(ok); runtime.nextCrisis = bus ? rand(B.crisisMin, B.crisisMax) : runtime.space === 'STREET' ? rand(CONFIG.street.crisisMin, CONFIG.street.crisisMax) : rand(C.min, C.max) // la calle tiene su propio ritmo (más espaciado)
         settleScare(ok) // el edificio del susto vuelve a su lugar
         if (runtime.sandbox) { // debug: el resultado no cuenta para la historia (ni fallos ni final negativo)
             ui.say(ok ? 'Minijuego superado (debug).' : 'Minijuego no superado (debug).')
@@ -426,7 +427,7 @@ function street(t, dt) {
     if (!runtime.postQuake) { if (!busy && auto() && current() === 'bus' && nearBus(0.9)) boardBus(); return }
     if (!auto()) { if (atUniversity(player.x, player.z)) blockMsg(t, 'Llegaste a la universidad (modo debug: el final no se activa).'); return }
     if (runtime.anxiety < C.driftMax) runtime.anxiety += C.drift * dt // incomodidad que va creciendo
-    if (!busy && !nearUniversity(player.x, player.z) && (runtime.nextCrisis -= dt * crisisMult()) <= 0) { // crisis esporádicas: a veces empiezan con un edificio que parece moverse
+    if (!busy && !nearUniversity(player.x, player.z) && (runtime.nextCrisis -= dt * Math.min(CONFIG.street.multMax, crisisMult())) <= 0) { // crisis esporádicas (en la calle se aceleran menos con la gente): a veces empiezan con un edificio que parece moverse
         if (Math.random() < CONFIG.street.scareChance && scare(t)) return
         return sm.go('ANXIETY')
     }
